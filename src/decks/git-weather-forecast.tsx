@@ -512,7 +512,6 @@ function WindStreak({
           stroke={color}
           strokeWidth={2}
           strokeLinecap="round"
-          vectorEffect="non-scaling-stroke"
           pathLength={1}
           strokeDasharray={1}
           style={{
