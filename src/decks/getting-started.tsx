@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { tokens } from "@fluentui/react-components";
 import { SlidePlaceholder } from "../deck-engine/SlidePlaceholder";
+import { Say, Beat } from "../deck-engine/PresenterNoteKit";
 import type { Deck, Slide } from "./types";
 
 // ── Deliberately plain — no CSS-art, no animation ────────────────────────────
@@ -71,7 +72,12 @@ export const gettingStartedDeck: Deck = {
   createSlides: (): Slide[] => [
     {
       id: "welcome",
-      notes: "This is the presenter-notes view. Anything you put in a slide's `notes` field (markdown) shows up here, on a second screen, while you present.",
+      notes: (
+        <Say>
+          This is the presenter-notes view. A slide&apos;s <code>notes</code> field can be a plain
+          markdown string, or composed JSX — see slide 3 for the latter.
+        </Say>
+      ),
       copy: (
         <CopyPanel>
           <Eyebrow>Connected Deck · Starter</Eyebrow>
@@ -85,7 +91,13 @@ export const gettingStartedDeck: Deck = {
     },
     {
       id: "placeholder-one",
-      notes: "This slide has both `copy` and `content`, so the player splits the frame 60/40. SlidePlaceholder is a real engine component — swap it for any live React component and the layout doesn't change.",
+      notes: (
+        <Say>
+          This slide has both <code>copy</code> and <code>content</code>, so the player splits the
+          frame 60/40. SlidePlaceholder is a real engine component — swap it for any live React
+          component and the layout doesn&apos;t change.
+        </Say>
+      ),
       content: <SlidePlaceholder label="Your first connected visual" sublabel="Swap this for a live chart, a real API call, or a component pulled straight from your own app." />,
       copy: (
         <CopyPanel>
@@ -100,11 +112,17 @@ export const gettingStartedDeck: Deck = {
     },
     {
       id: "placeholder-two",
-      notes: [
-        "**Speaker notes are markdown.** Bullet points, bold text, whatever you need mid-talk.",
-        "- Open this deck, click the speaker icon in the bottom bar",
-        "- A second window opens with these notes, a timer, and a next-slide preview",
-      ].join("\n"),
+      notes: (
+        <>
+          <Say>
+            This note is composed from Say and Beat (see PresenterNoteKit) instead of a markdown
+            string — that&apos;s why it looks different from slides 1 and 2. Say is what you read
+            aloud; Beat is a delivery cue you keep to yourself.
+          </Say>
+          <Beat>Open this deck, click the speaker icon in the bottom bar</Beat>
+          <Beat>A second window opens with these notes, a timer, and a next-slide preview</Beat>
+        </>
+      ),
       content: <SlidePlaceholder label="Your second connected visual" sublabel="ComponentFrame (used inside SlidePlaceholder) gives every slide a live zoom control for free." />,
       copy: (
         <CopyPanel>
@@ -119,7 +137,7 @@ export const gettingStartedDeck: Deck = {
     },
     {
       id: "thank-you",
-      notes: "The closer. Full-width, no content panel — same pattern as the title slide.",
+      notes: <Say>The closer. Full-width, no content panel — same pattern as the title slide.</Say>,
       copy: (
         <CopyPanel>
           <Eyebrow>That&apos;s It</Eyebrow>

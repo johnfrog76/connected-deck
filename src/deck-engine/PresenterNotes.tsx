@@ -11,9 +11,21 @@ import {
 import { darkTheme } from "../theme";
 import { DECKS } from "../decks/index";
 import { MarkdownViewer } from "../shared/MarkdownViewer";
+import { NoteLegend } from "./PresenterNoteKit";
+import { SlideRenderer } from "./SlideRenderer";
 
 const DECK_BG = "#07080f";
 const BORDER = "#1e2030";
+
+// Virtual full-slide canvas the next-slide card scales down from, so the same
+// SlideRenderer (content + copy, 60/40 split) that drives the main deck
+// window renders here too — the presenter sees the real upcoming slide, not
+// just its text panel.
+const CARD_SLIDE_W = 1280;
+const CARD_SLIDE_H = 720;
+const CARD_W = 360;
+const CARD_SCALE = CARD_W / CARD_SLIDE_W;
+const CARD_H = CARD_SLIDE_H * CARD_SCALE;
 
 interface SlideState {
   index: number;
@@ -125,6 +137,13 @@ export function PresenterNotes() {
   const currentSlide = slides[index];
   const nextSlide = slides[index + 1];
 
+  // Only decks that have migrated to Say/Context/Beat notes need the legend —
+  // plain markdown-string notes have no categories to explain.
+  const usesNoteKit = useMemo(
+    () => slides.some((s) => s.notes != null && typeof s.notes !== "string"),
+    [slides],
+  );
+
   // Drives the main deck window (paging) from here, so the presenter can stay
   // on this screen — posts "goto" over the same channel DeckController listens on.
   const goto = useCallback((i: number) => {
@@ -183,25 +202,37 @@ export function PresenterNotes() {
         </div>
 
         {/* Notes body */}
-        <div style={{ flex: 1, overflow: "auto", padding: "150px 24px" }}>
-          {currentSlide?.notes ? (
-            <MarkdownViewer content={currentSlide.notes} maxHeight="100%" />
-          ) : (
-            <span style={{ color: tokens.colorNeutralForeground3, fontStyle: "italic" }}>
-              No notes
-            </span>
+        <div style={{ flex: 1, overflow: "auto", padding: "24px" }}>
+          {usesNoteKit && (
+            <div style={{ marginBottom: "24px" }}>
+              <NoteLegend />
+            </div>
           )}
+          <div style={{ padding: "0 0 126px" }}>
+            {currentSlide?.notes ? (
+              typeof currentSlide.notes === "string" ? (
+                <MarkdownViewer content={currentSlide.notes} maxHeight="100%" />
+              ) : (
+                <div style={{ maxWidth: "80ch" }}>{currentSlide.notes}</div>
+              )
+            ) : (
+              <span style={{ color: tokens.colorNeutralForeground3, fontStyle: "italic" }}>
+                No notes
+              </span>
+            )}
+          </div>
         </div>
 
-        {/* Next-slide preview */}
+        {/* Next-slide preview — a scaled-down real render of the upcoming slide */}
         {nextSlide && (
           <div
             style={{
               flexShrink: 0,
               borderTop: `1px solid ${BORDER}`,
               padding: "16px 24px",
-              opacity: 0.35,
-              pointerEvents: "none",
+              display: "flex",
+              alignItems: "center",
+              gap: "16px",
             }}
           >
             <div
@@ -209,12 +240,37 @@ export function PresenterNotes() {
                 fontSize: "11px",
                 fontFamily: "monospace",
                 color: tokens.colorNeutralForeground3,
-                marginBottom: "8px",
+                writingMode: "vertical-rl",
+                transform: "rotate(180deg)",
               }}
             >
               Next →
             </div>
-            {nextSlide.copy}
+            <div
+              style={{
+                width: `${CARD_W}px`,
+                height: `${CARD_H}px`,
+                flexShrink: 0,
+                overflow: "hidden",
+                borderRadius: "10px",
+                border: `1px solid ${BORDER}`,
+                boxShadow: "0 8px 24px rgba(0, 0, 0, 0.5)",
+                pointerEvents: "none",
+              }}
+            >
+              <div
+                style={{
+                  width: `${CARD_SLIDE_W}px`,
+                  height: `${CARD_SLIDE_H}px`,
+                  transform: `scale(${CARD_SCALE})`,
+                  transformOrigin: "top left",
+                  display: "flex",
+                  backgroundColor: DECK_BG,
+                }}
+              >
+                <SlideRenderer slide={nextSlide} slideIndex={index + 1} isFullscreen={false} />
+              </div>
+            </div>
           </div>
         )}
       </div>

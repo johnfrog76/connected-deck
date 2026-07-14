@@ -3,6 +3,7 @@ import { tokens } from "@fluentui/react-components";
 import { ComponentFrame } from "../deck-engine/ComponentFrame";
 import { CopyLinkButton } from "../deck-engine/CopyLinkButton";
 import { DemoSprintVelocity } from "./DemoSprintVelocity";
+import { Say, Beat } from "../deck-engine/PresenterNoteKit";
 import type { Deck, Slide } from "./types";
 
 const REPO_URL = "https://github.com/johnfrog76/connected-deck";
@@ -1671,11 +1672,14 @@ export const gitWeatherForecastDeck: Deck = {
   createSlides: (): Slide[] => [
     {
       id: "title",
-      notes: [
-        "**Open warm.** “We track weather because it changes fast. We track git because it changes faster.”",
-        "This deck reads your team's development climate like a forecast.",
-        "- The whole visual language is CSS-as-art — no images, all gradients and motion",
-      ].join("\n"),
+      notes: (
+        <>
+          <Beat>Open warm.</Beat>
+          <Say>“We track weather because it changes fast. We track git because it changes faster.”</Say>
+          <Say>This deck reads your team&apos;s development climate like a forecast.</Say>
+          <Beat>The whole visual language is CSS-as-art — no images, all gradients and motion</Beat>
+        </>
+      ),
       content: <TitleVisual />,
       copy: (
         <CopyPanel>
@@ -1687,10 +1691,13 @@ export const gitWeatherForecastDeck: Deck = {
     },
     {
       id: "why-weather",
-      notes: [
-        "**Set the metaphor mapping.** “Commits are wind. Churn is pressure. PRs are storm fronts.”",
-        "Weather metaphors make team velocity intuitive — everyone already reads a forecast.",
-      ].join("\n"),
+      notes: (
+        <>
+          <Beat>Set the metaphor mapping.</Beat>
+          <Say>“Commits are wind. Churn is pressure. PRs are storm fronts.”</Say>
+          <Say>Weather metaphors make team velocity intuitive — everyone already reads a forecast.</Say>
+        </>
+      ),
       content: <WhyVisual />,
       copy: (
         <CopyPanel>
@@ -1709,9 +1716,12 @@ export const gitWeatherForecastDeck: Deck = {
     },
     {
       id: "day-1",
-      notes: [
-        "**Every sprint starts with optimism.** The forecast looks great — until the first cold front hits.",
-      ].join("\n"),
+      notes: (
+        <>
+          <Beat>Every sprint starts with optimism.</Beat>
+          <Say>The forecast looks great — until the first cold front hits.</Say>
+        </>
+      ),
       content: <ClearSkiesVisual />,
       copy: (
         <CopyPanel>
@@ -1723,9 +1733,12 @@ export const gitWeatherForecastDeck: Deck = {
     },
     {
       id: "day-2",
-      notes: [
-        "**Clouds represent uncertainty.** Requirements always drift — even if the sprint plan doesn't.",
-      ].join("\n"),
+      notes: (
+        <>
+          <Beat>Clouds represent uncertainty.</Beat>
+          <Say>Requirements always drift — even if the sprint plan doesn&apos;t.</Say>
+        </>
+      ),
       content: <FirstCloudVisual />,
       copy: (
         <CopyPanel>
@@ -1737,9 +1750,12 @@ export const gitWeatherForecastDeck: Deck = {
     },
     {
       id: "day-3",
-      notes: [
-        "**Churn is atmospheric pressure.** Small commits accumulate into a weather system.",
-      ].join("\n"),
+      notes: (
+        <>
+          <Beat>Churn is atmospheric pressure.</Beat>
+          <Say>Small commits accumulate into a weather system.</Say>
+        </>
+      ),
       content: <PressureVisual />,
       copy: (
         <CopyPanel>
@@ -1751,9 +1767,12 @@ export const gitWeatherForecastDeck: Deck = {
     },
     {
       id: "day-4",
-      notes: [
-        "**Lightning is a big PR** — high energy, high risk. This is when the sprint forecast changes.",
-      ].join("\n"),
+      notes: (
+        <>
+          <Beat>Lightning is a big PR</Beat>
+          <Say>— high energy, high risk. This is when the sprint forecast changes.</Say>
+        </>
+      ),
       content: <LightningVisual />,
       copy: (
         <CopyPanel>
@@ -1765,12 +1784,21 @@ export const gitWeatherForecastDeck: Deck = {
     },
     {
       id: "day-5-velocity",
-      notes: [
-        "**This is the storm front made real.** Multiple engineers pushing hard shows up as churn and velocity.",
-        "This is the live SprintVelocity card — commits, merges, churn, my-share, all read from git history.",
-        "- Point at the churn tiles: that's the atmospheric pressure we've been talking about, now measured",
-        "- Git becomes a radar map — the storm isn't a metaphor here, it's the data",
-      ].join("\n"),
+      notes: (
+        <>
+          <Beat>This is the storm front made real.</Beat>
+          <Say>Multiple engineers pushing hard shows up as churn and velocity.</Say>
+          <Say>
+            This is the live SprintVelocity card — commits, merges, churn, my-share, all read from
+            git history.
+          </Say>
+          <Beat>
+            Point at the churn tiles: that&apos;s the atmospheric pressure we&apos;ve been talking
+            about, now measured
+          </Beat>
+          <Beat>Git becomes a radar map — the storm isn&apos;t a metaphor here, it&apos;s the data</Beat>
+        </>
+      ),
       content: <StormVelocityVisual />,
       copy: (
         <CopyPanel>
@@ -1792,14 +1820,32 @@ export const gitWeatherForecastDeck: Deck = {
     },
     {
       id: "instruments",
-      notes: [
-        "**Deliberately drop the temperature here** — the fun visuals stop; this is the barometer.",
-        "These are the real goStressCheck readouts. The point: git already hands you leading indicators, we just rarely look until a weather event forces us to.",
-        "- Upstream merges = drift from origin/main since you branched. It's your collision radar — rising drift means the merge you haven't done yet is getting worse.",
-        "- Surface area = churn (lines changed) over files touched. Wide-and-shallow is a breeze; narrow-and-deep is a pressure cell.",
-        "- Merge velocity and cadence are throughput and rhythm — falling velocity late in a sprint is a pressure drop.",
-        "- Land it: none of these are the storm. They're the barometer that falls before the front arrives.",
-      ].join("\n"),
+      notes: (
+        <>
+          <Beat>Deliberately drop the temperature here</Beat>
+          <Say>— the fun visuals stop; this is the barometer.</Say>
+          <Say>
+            These are the real goStressCheck readouts. The point: git already hands you leading
+            indicators, we just rarely look until a weather event forces us to.
+          </Say>
+          <Beat>
+            Upstream merges = drift from origin/main since you branched. It&apos;s your collision
+            radar — rising drift means the merge you haven&apos;t done yet is getting worse.
+          </Beat>
+          <Beat>
+            Surface area = churn (lines changed) over files touched. Wide-and-shallow is a breeze;
+            narrow-and-deep is a pressure cell.
+          </Beat>
+          <Beat>
+            Merge velocity and cadence are throughput and rhythm — falling velocity late in a
+            sprint is a pressure drop.
+          </Beat>
+          <Beat>
+            Land it: none of these are the storm. They&apos;re the barometer that falls before the
+            front arrives.
+          </Beat>
+        </>
+      ),
       content: <InstrumentsVisual />,
       copy: (
         <CopyPanel>
@@ -1822,12 +1868,25 @@ export const gitWeatherForecastDeck: Deck = {
     },
     {
       id: "algorithm",
-      notes: [
-        "**The genuinely boring slide — own it.** No motion, just the arithmetic.",
-        "goStressCheck fetches origin, finds the merge-base, and counts what's landed upstream since you branched. That drift, plus churn surface area and 3-day velocity, feed simple deficit thresholds.",
-        "- The whole trick: it runs the forecast BEFORE the merge, not after the conflict. Cheap git plumbing — merge-base, rev-list --count, diff --shortstat.",
-        "- Pre-empt the question: no ML, no model. Just counting the right things early and coloring them against a threshold.",
-      ].join("\n"),
+      notes: (
+        <>
+          <Beat>The genuinely boring slide — own it.</Beat>
+          <Say>No motion, just the arithmetic.</Say>
+          <Say>
+            goStressCheck fetches origin, finds the merge-base, and counts what&apos;s landed
+            upstream since you branched. That drift, plus churn surface area and 3-day velocity,
+            feed simple deficit thresholds.
+          </Say>
+          <Beat>
+            The whole trick: it runs the forecast BEFORE the merge, not after the conflict. Cheap
+            git plumbing — merge-base, rev-list --count, diff --shortstat.
+          </Beat>
+          <Beat>
+            Pre-empt the question: no ML, no model. Just counting the right things early and
+            coloring them against a threshold.
+          </Beat>
+        </>
+      ),
       content: <AlgorithmVisual />,
       copy: (
         <CopyPanel>
@@ -1850,12 +1909,27 @@ export const gitWeatherForecastDeck: Deck = {
     },
     {
       id: "temperature-map",
-      notes: [
-        "**Still in instrument mode — one more reading: heat.** Some files are calm, some are warm, and a few are red-hot: every change to them triggers turbulence.",
-        "- This is `git log --name-only` aggregated per file — touch frequency over the last N weeks. Cheap to compute, brutally honest.",
-        "- The hot files are almost never a surprise to the team — but they ARE a surprise to the roadmap. Estimation should price in file temperature.",
-        "- Practical move: before a sprint, glance at the map. Work landing in red files gets a risk multiplier; work in blue files doesn't.",
-      ].join("\n"),
+      notes: (
+        <>
+          <Beat>Still in instrument mode — one more reading: heat.</Beat>
+          <Say>
+            Some files are calm, some are warm, and a few are red-hot: every change to them
+            triggers turbulence.
+          </Say>
+          <Beat>
+            This is <code>git log --name-only</code> aggregated per file — touch frequency over
+            the last N weeks. Cheap to compute, brutally honest.
+          </Beat>
+          <Beat>
+            The hot files are almost never a surprise to the team — but they ARE a surprise to the
+            roadmap. Estimation should price in file temperature.
+          </Beat>
+          <Beat>
+            Practical move: before a sprint, glance at the map. Work landing in red files gets a
+            risk multiplier; work in blue files doesn&apos;t.
+          </Beat>
+        </>
+      ),
       content: <TemperatureMapVisual />,
       copy: (
         <CopyPanel>
@@ -1877,13 +1951,25 @@ export const gitWeatherForecastDeck: Deck = {
     },
     {
       id: "churn-vectors",
-      notes: [
-        "**Churn has direction, not just magnitude.** Same line count, completely different weather.",
-        "- Feature churn flows forward — long straight arrows, new files, additive diffs.",
-        "- Refactor churn spirals — it revisits the same modules from different angles. Looks alarming in raw numbers, usually healthy.",
-        "- Bug churn hammers the same spot over and over. Three short arrows into one file is the signature of a design problem, not bad luck.",
-        "- Diagnostic: when churn is high, ask WHICH pattern before reacting. The fix for each is different.",
-      ].join("\n"),
+      notes: (
+        <>
+          <Beat>Churn has direction, not just magnitude.</Beat>
+          <Say>Same line count, completely different weather.</Say>
+          <Beat>Feature churn flows forward — long straight arrows, new files, additive diffs.</Beat>
+          <Beat>
+            Refactor churn spirals — it revisits the same modules from different angles. Looks
+            alarming in raw numbers, usually healthy.
+          </Beat>
+          <Beat>
+            Bug churn hammers the same spot over and over. Three short arrows into one file is the
+            signature of a design problem, not bad luck.
+          </Beat>
+          <Beat>
+            Diagnostic: when churn is high, ask WHICH pattern before reacting. The fix for each is
+            different.
+          </Beat>
+        </>
+      ),
       content: <ChurnVectorsVisual />,
       copy: (
         <CopyPanel>
@@ -1906,9 +1992,12 @@ export const gitWeatherForecastDeck: Deck = {
     },
     {
       id: "day-6",
-      notes: [
-        "**This is where teams earn their reputation.** The repo is alive — commits flying, pipelines running.",
-      ].join("\n"),
+      notes: (
+        <>
+          <Beat>This is where teams earn their reputation.</Beat>
+          <Say>The repo is alive — commits flying, pipelines running.</Say>
+        </>
+      ),
       content: <WallOfWorkVisual />,
       copy: (
         <CopyPanel>
@@ -1920,9 +2009,15 @@ export const gitWeatherForecastDeck: Deck = {
     },
     {
       id: "day-7",
-      notes: [
-        "**The eye is deceptive** — it feels calm, but the storm continues. This is when someone says “we're actually on track.”",
-      ].join("\n"),
+      notes: (
+        <>
+          <Beat>The eye is deceptive</Beat>
+          <Say>
+            — it feels calm, but the storm continues. This is when someone says “we&apos;re
+            actually on track.”
+          </Say>
+        </>
+      ),
       content: <EyeVisual />,
       copy: (
         <CopyPanel>
@@ -1934,9 +2029,12 @@ export const gitWeatherForecastDeck: Deck = {
     },
     {
       id: "day-8",
-      notes: [
-        "**The backside of the storm is always worse.** PR reviews stack, comments fly, pipelines break.",
-      ].join("\n"),
+      notes: (
+        <>
+          <Beat>The backside of the storm is always worse.</Beat>
+          <Say>PR reviews stack, comments fly, pipelines break.</Say>
+        </>
+      ),
       content: <BacksideVisual />,
       copy: (
         <CopyPanel>
@@ -1948,10 +2046,13 @@ export const gitWeatherForecastDeck: Deck = {
     },
     {
       id: "climate-ai",
-      notes: [
-        "**AI isn't a storm — it's heat.** Heat increases volatility. Volatility creates storms.",
-        "Suddenly a tiny commit becomes a tropical storm.",
-      ].join("\n"),
+      notes: (
+        <>
+          <Beat>AI isn&apos;t a storm — it&apos;s heat.</Beat>
+          <Say>Heat increases volatility. Volatility creates storms.</Say>
+          <Say>Suddenly a tiny commit becomes a tropical storm.</Say>
+        </>
+      ),
       content: <HeatVisual />,
       copy: (
         <CopyPanel>
@@ -1965,9 +2066,15 @@ export const gitWeatherForecastDeck: Deck = {
     },
     {
       id: "extreme",
-      notes: [
-        "**AI-heated climates produce extreme events.** 10k+ churn days, multi-repo refactors, pipeline storms. Exciting — sometimes too exciting.",
-      ].join("\n"),
+      notes: (
+        <>
+          <Beat>AI-heated climates produce extreme events.</Beat>
+          <Say>
+            10k+ churn days, multi-repo refactors, pipeline storms. Exciting — sometimes too
+            exciting.
+          </Say>
+        </>
+      ),
       content: <ExtremeVisual />,
       copy: (
         <CopyPanel>
@@ -1981,9 +2088,12 @@ export const gitWeatherForecastDeck: Deck = {
     },
     {
       id: "mild",
-      notes: [
-        "**In-house teams often operate in mild climates.** Long planning cycles. Granular changes. Very stable forecasts.",
-      ].join("\n"),
+      notes: (
+        <>
+          <Beat>In-house teams often operate in mild climates.</Beat>
+          <Say>Long planning cycles. Granular changes. Very stable forecasts.</Say>
+        </>
+      ),
       content: <MildVisual />,
       copy: (
         <CopyPanel>
@@ -1997,10 +2107,15 @@ export const gitWeatherForecastDeck: Deck = {
     },
     {
       id: "two-climates",
-      notes: [
-        "**Both are great places to live. Just pack different clothes.**",
-        "Some teams live in Florida — storms every afternoon. Some live in San Diego — 72° and sunny forever.",
-      ].join("\n"),
+      notes: (
+        <>
+          <Beat>Both are great places to live. Just pack different clothes.</Beat>
+          <Say>
+            Some teams live in Florida — storms every afternoon. Some live in San Diego — 72° and
+            sunny forever.
+          </Say>
+        </>
+      ),
       content: <TwoClimatesVisual />,
       copy: (
         <CopyPanel>
@@ -2014,12 +2129,22 @@ export const gitWeatherForecastDeck: Deck = {
     },
     {
       id: "radar",
-      notes: [
-        "**Pull it all together before the close.** Every reading so far — drift, surface area, heat, vectors — feeds one picture: the radar.",
-        "- It shows pressure before the storm. Drift before the merge. Heat before the churn spike.",
-        "- This is the difference between forecasting and reacting: the reactive team learns about the storm from the merge conflict; the forecasting team saw the cell forming three days out.",
-        "- Small blips are commits, big blips are PRs, the red cell is a multi-repo change forming.",
-      ].join("\n"),
+      notes: (
+        <>
+          <Beat>Pull it all together before the close.</Beat>
+          <Say>
+            Every reading so far — drift, surface area, heat, vectors — feeds one picture: the
+            radar.
+          </Say>
+          <Beat>It shows pressure before the storm. Drift before the merge. Heat before the churn spike.</Beat>
+          <Beat>
+            This is the difference between forecasting and reacting: the reactive team learns
+            about the storm from the merge conflict; the forecasting team saw the cell forming
+            three days out.
+          </Beat>
+          <Beat>Small blips are commits, big blips are PRs, the red cell is a multi-repo change forming.</Beat>
+        </>
+      ),
       content: <RadarVisual />,
       copy: (
         <CopyPanel>
@@ -2041,11 +2166,14 @@ export const gitWeatherForecastDeck: Deck = {
     },
     {
       id: "punchline",
-      notes: [
-        "**Land the close slowly.** “Leadership isn't about controlling the weather.”",
-        "“It's about forecasting the climate your team operates in. Git is your radar.”",
-        "- Pause before Q&A",
-      ].join("\n"),
+      notes: (
+        <>
+          <Beat>Land the close slowly.</Beat>
+          <Say>“Leadership isn&apos;t about controlling the weather.”</Say>
+          <Say>“It&apos;s about forecasting the climate your team operates in. Git is your radar.”</Say>
+          <Beat>Pause before Q&amp;A</Beat>
+        </>
+      ),
       content: <PunchlineVisual />,
       copy: (
         <CopyPanel>
@@ -2060,10 +2188,13 @@ export const gitWeatherForecastDeck: Deck = {
     },
     {
       id: "thank-you",
-      notes: [
-        "**The warm close.** Let the flock cross while you thank the room — dwell here.",
-        "Skies clear at sunset, birds heading home. Open it up for questions.",
-      ].join("\n"),
+      notes: (
+        <>
+          <Beat>The warm close.</Beat>
+          <Say>Let the flock cross while you thank the room — dwell here.</Say>
+          <Say>Skies clear at sunset, birds heading home. Open it up for questions.</Say>
+        </>
+      ),
       content: <ThankYouVisual />,
       copy: (
         <CopyPanel>
