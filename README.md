@@ -44,7 +44,12 @@ src/
                           scales it, gives it a design-grid backdrop, and
                           adds a live zoom control you can drive mid-talk
     PresenterNotes.tsx    a second-screen presenter view (own tab/window):
-                          markdown notes, a timer, and next-slide preview
+                          notes, a timer, and a live next-slide preview —
+                          the actual upcoming slide, rendered via
+                          SlideRenderer and scaled down, not just its text
+    PresenterNoteKit.tsx  Say / Context / Beat building blocks for composing
+                          a slide's notes — see "The slide-authoring
+                          contract" below
     DeckPickerCard.tsx    a "deck picker" card listing every registered deck
     SlidePlaceholder.tsx  a dashed-border "visual to build" stand-in — drop
                           it into a slide's `content` while sketching a deck
@@ -80,7 +85,7 @@ export interface Slide {
   id: string;
   copy: ReactNode;      // talking points / title panel
   content?: ReactNode;  // the live visual — omit for a full-width copy slide
-  notes?: string;       // markdown, shown in the presenter-notes window
+  notes?: ReactNode;    // shown in the presenter-notes window
 }
 
 export interface Deck {
@@ -89,6 +94,25 @@ export interface Deck {
   createSlides: () => Slide[];
 }
 ```
+
+`notes` still accepts a plain markdown string (rendered as before, for older
+decks), but new decks should compose it from `Say` / `Context` / `Beat` in
+`deck-engine/PresenterNoteKit.tsx` instead of one undifferentiated blob:
+
+```tsx
+notes: (
+  <>
+    <Say>This chart is pulling live from the same store the app uses.</Say>
+    <Context>Slow down here — this is the "aha" moment for most audiences.</Context>
+    <Beat>advance on click</Beat>
+  </>
+),
+```
+
+`Say` renders verbatim talking points, `Context` is background/tone the
+presenter shouldn't read aloud, and `Beat` is a pacing/delivery cue — each
+gets distinct styling on the presenter screen, with `NoteLegend` available to
+key the colors for anyone new to the format.
 
 Because slides are plain components, "connecting" one to something real is
 just... importing it:
@@ -151,6 +175,12 @@ pass the component a frozen snapshot instead of a live query.
   `SlideRenderer` only deal in `ReactNode`. Whatever a slide's `content`
   renders — a chart, a live API call, a whole page from your app — is
   entirely up to the slide, not the engine.
+- **Next-slide preview renders at a 1920×1080 internal canvas**, scaled down
+  to card size (`PresenterNotes.tsx`'s `CARD_SLIDE_W`/`CARD_SLIDE_H`), not the
+  card's actual on-screen pixel size. Slide content authored assuming a wide
+  Stage can otherwise clip at the edge of a smaller virtual canvas — same
+  16:9 ratio, just more internal pixel budget for the real slide to lay out
+  in before it gets scaled down.
 
 ## Stack
 

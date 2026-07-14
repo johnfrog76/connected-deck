@@ -21,8 +21,8 @@ const BORDER = "#1e2030";
 // SlideRenderer (content + copy, 60/40 split) that drives the main deck
 // window renders here too — the presenter sees the real upcoming slide, not
 // just its text panel.
-const CARD_SLIDE_W = 1280;
-const CARD_SLIDE_H = 720;
+const CARD_SLIDE_W = 1920;
+const CARD_SLIDE_H = 1080;
 const CARD_W = 360;
 const CARD_SCALE = CARD_W / CARD_SLIDE_W;
 const CARD_H = CARD_SLIDE_H * CARD_SCALE;
