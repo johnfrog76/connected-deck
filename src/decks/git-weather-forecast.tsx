@@ -1672,6 +1672,7 @@ export const gitWeatherForecastDeck: Deck = {
   createSlides: (): Slide[] => [
     {
       id: "title",
+      title: "Team Development:\nGit as a 10-Day Forecast",
       notes: (
         <>
           <Beat>Open warm.</Beat>
@@ -1691,6 +1692,7 @@ export const gitWeatherForecastDeck: Deck = {
     },
     {
       id: "why-weather",
+      title: "Software Has Weather. Git Shows It.",
       notes: (
         <>
           <Beat>Set the metaphor mapping.</Beat>
@@ -1716,6 +1718,7 @@ export const gitWeatherForecastDeck: Deck = {
     },
     {
       id: "day-1",
+      title: "Calm Start, High Confidence",
       notes: (
         <>
           <Beat>Every sprint starts with optimism.</Beat>
@@ -1733,6 +1736,7 @@ export const gitWeatherForecastDeck: Deck = {
     },
     {
       id: "day-2",
+      title: "Requirements Drift In",
       notes: (
         <>
           <Beat>Clouds represent uncertainty.</Beat>
@@ -1750,6 +1754,7 @@ export const gitWeatherForecastDeck: Deck = {
     },
     {
       id: "day-3",
+      title: "Churn Begins",
       notes: (
         <>
           <Beat>Churn is atmospheric pressure.</Beat>
@@ -1767,6 +1772,7 @@ export const gitWeatherForecastDeck: Deck = {
     },
     {
       id: "day-4",
+      title: "First Major PR Hits",
       notes: (
         <>
           <Beat>Lightning is a big PR</Beat>
@@ -1784,6 +1790,7 @@ export const gitWeatherForecastDeck: Deck = {
     },
     {
       id: "day-5-velocity",
+      title: "Team Velocity Surges",
       notes: (
         <>
           <Beat>This is the storm front made real.</Beat>
@@ -1820,6 +1827,7 @@ export const gitWeatherForecastDeck: Deck = {
     },
     {
       id: "instruments",
+      title: "Git Is Already a Weather Station",
       notes: (
         <>
           <Beat>Deliberately drop the temperature here</Beat>
@@ -1868,6 +1876,7 @@ export const gitWeatherForecastDeck: Deck = {
     },
     {
       id: "algorithm",
+      title: "Cheap Plumbing, Early Warning",
       notes: (
         <>
           <Beat>The genuinely boring slide — own it.</Beat>
@@ -1909,6 +1918,7 @@ export const gitWeatherForecastDeck: Deck = {
     },
     {
       id: "temperature-map",
+      title: "Hot Files Behave Like Hot Air",
       notes: (
         <>
           <Beat>Still in instrument mode — one more reading: heat.</Beat>
@@ -1951,6 +1961,7 @@ export const gitWeatherForecastDeck: Deck = {
     },
     {
       id: "churn-vectors",
+      title: "Churn Has Direction, Not Just Magnitude",
       notes: (
         <>
           <Beat>Churn has direction, not just magnitude.</Beat>
@@ -1992,6 +2003,7 @@ export const gitWeatherForecastDeck: Deck = {
     },
     {
       id: "day-6",
+      title: "High Churn, High Throughput",
       notes: (
         <>
           <Beat>This is where teams earn their reputation.</Beat>
@@ -2009,6 +2021,7 @@ export const gitWeatherForecastDeck: Deck = {
     },
     {
       id: "day-7",
+      title: "Temporary Calm — Not Safety",
       notes: (
         <>
           <Beat>The eye is deceptive</Beat>
@@ -2029,6 +2042,7 @@ export const gitWeatherForecastDeck: Deck = {
     },
     {
       id: "day-8",
+      title: "PR Review Flood",
       notes: (
         <>
           <Beat>The backside of the storm is always worse.</Beat>
@@ -2046,6 +2060,7 @@ export const gitWeatherForecastDeck: Deck = {
     },
     {
       id: "climate-ai",
+      title: "AI Raises the Temperature of Development",
       notes: (
         <>
           <Beat>AI isn&apos;t a storm — it&apos;s heat.</Beat>
@@ -2066,6 +2081,7 @@ export const gitWeatherForecastDeck: Deck = {
     },
     {
       id: "extreme",
+      title: "Large Weather Events Become Normal",
       notes: (
         <>
           <Beat>AI-heated climates produce extreme events.</Beat>
@@ -2088,6 +2104,7 @@ export const gitWeatherForecastDeck: Deck = {
     },
     {
       id: "mild",
+      title: "Quarterly KPIs = Calm, Predictable Weather",
       notes: (
         <>
           <Beat>In-house teams often operate in mild climates.</Beat>
@@ -2107,6 +2124,7 @@ export const gitWeatherForecastDeck: Deck = {
     },
     {
       id: "two-climates",
+      title: "Stormy vs. Sunny — Both Valid, Both Fun",
       notes: (
         <>
           <Beat>Both are great places to live. Just pack different clothes.</Beat>
@@ -2129,6 +2147,7 @@ export const gitWeatherForecastDeck: Deck = {
     },
     {
       id: "radar",
+      title: "Git Predicts Storms Before They Form",
       notes: (
         <>
           <Beat>Pull it all together before the close.</Beat>
@@ -2166,6 +2185,7 @@ export const gitWeatherForecastDeck: Deck = {
     },
     {
       id: "punchline",
+      title: "If You Can Read the Climate,\nYou Can Lead the Team",
       notes: (
         <>
           <Beat>Land the close slowly.</Beat>
@@ -2188,6 +2208,7 @@ export const gitWeatherForecastDeck: Deck = {
     },
     {
       id: "thank-you",
+      title: "Thank You",
       notes: (
         <>
           <Beat>The warm close.</Beat>

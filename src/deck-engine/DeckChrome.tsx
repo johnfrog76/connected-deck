@@ -78,7 +78,15 @@ export function DeckChrome({
           title="Open speaker notes"
           icon={<Speaker0Regular />}
           onClick={() => {
-            window.open(`/deck/${deckId}/notes`, "_blank", "width=900,height=600");
+            const NOTES_WIDTH = 500;
+            const NOTES_HEIGHT = 850;
+            const left = window.screenX + (window.innerWidth - NOTES_WIDTH) / 2;
+            const top = window.screenY + (window.innerHeight - NOTES_HEIGHT) / 2;
+            window.open(
+              `/deck/${deckId}/notes`,
+              "_blank",
+              `width=${NOTES_WIDTH},height=${NOTES_HEIGHT},left=${Math.round(left)},top=${Math.round(top)}`
+            );
           }}
         />
         <Button

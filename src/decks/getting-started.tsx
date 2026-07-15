@@ -72,6 +72,7 @@ export const gettingStartedDeck: Deck = {
   createSlides: (): Slide[] => [
     {
       id: "welcome",
+      title: "A Deck Is Just Data",
       notes: (
         <Say>
           This is the presenter-notes view. A slide&apos;s <code>notes</code> field can be a plain
@@ -91,6 +92,7 @@ export const gettingStartedDeck: Deck = {
     },
     {
       id: "placeholder-one",
+      title: "The Left Panel Is Real Estate",
       notes: (
         <Say>
           This slide has both <code>copy</code> and <code>content</code>, so the player splits the
@@ -112,6 +114,7 @@ export const gettingStartedDeck: Deck = {
     },
     {
       id: "placeholder-two",
+      title: "Notes Live Off-Stage",
       notes: (
         <>
           <Say>
@@ -137,6 +140,7 @@ export const gettingStartedDeck: Deck = {
     },
     {
       id: "thank-you",
+      title: "Thank You",
       notes: <Say>The closer. Full-width, no content panel — same pattern as the title slide.</Say>,
       copy: (
         <CopyPanel>

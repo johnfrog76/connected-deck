@@ -2,6 +2,12 @@ import type { ReactNode } from "react";
 
 export interface Slide {
   id: string;
+  /**
+   * Plain-text slide title, shown full-sized in the presenter-notes window so
+   * the speaker can connect their notes to the slide the room is seeing.
+   * Should match the visible title inside `copy`.
+   */
+  title?: string;
   copy: ReactNode;
   content?: ReactNode;
   /**

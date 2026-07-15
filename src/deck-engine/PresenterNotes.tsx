@@ -11,6 +11,7 @@ import {
 import { darkTheme } from "../theme";
 import { DECKS } from "../decks/index";
 import { MarkdownViewer } from "../shared/MarkdownViewer";
+import { ZoomControl } from "../shared/ZoomControl";
 import { NoteLegend } from "./PresenterNoteKit";
 import { SlideRenderer } from "./SlideRenderer";
 
@@ -115,6 +116,9 @@ export function PresenterNotes() {
   const slides = useMemo(() => deck?.createSlides() ?? [], [deck]);
 
   const [slideState, setSlideState] = useState<SlideState>({ index: 0, total: 0 });
+  // JSX (Say/Context/Beat) notes don't go through MarkdownViewer, so they need
+  // their own scale control — presenter screens and room lighting vary.
+  const [notesZoom, setNotesZoom] = useState(1.25);
   const channelRef = useRef<BroadcastChannel | null>(null);
 
   useEffect(() => {
@@ -203,9 +207,22 @@ export function PresenterNotes() {
 
         {/* Notes body */}
         <div style={{ flex: 1, overflow: "auto", padding: "24px" }}>
-          {usesNoteKit && (
-            <div style={{ marginBottom: "24px" }}>
-              <NoteLegend />
+          {currentSlide?.title && (
+            <h1
+              style={{
+                margin: "0 0 20px",
+                fontSize: "32px",
+                fontWeight: 700,
+                lineHeight: 1.2,
+                color: "#fff",
+              }}
+            >
+              {currentSlide.title}
+            </h1>
+          )}
+          {usesNoteKit && typeof currentSlide?.notes !== "string" && (
+            <div style={{ marginBottom: "24px", display: "flex", justifyContent: "flex-end" }}>
+              <ZoomControl zoom={notesZoom} setZoom={setNotesZoom} min={0.5} max={2} step={0.25} />
             </div>
           )}
           <div style={{ padding: "0 0 126px" }}>
@@ -213,7 +230,7 @@ export function PresenterNotes() {
               typeof currentSlide.notes === "string" ? (
                 <MarkdownViewer content={currentSlide.notes} maxHeight="100%" />
               ) : (
-                <div style={{ maxWidth: "80ch" }}>{currentSlide.notes}</div>
+                <div style={{ maxWidth: "80ch", zoom: notesZoom }}>{currentSlide.notes}</div>
               )
             ) : (
               <span style={{ color: tokens.colorNeutralForeground3, fontStyle: "italic" }}>
@@ -222,6 +239,13 @@ export function PresenterNotes() {
             )}
           </div>
         </div>
+
+        {/* Note-kit legend — pinned above the next-slide divider, bottom-left */}
+        {usesNoteKit && (
+          <div style={{ flexShrink: 0, padding: "0 24px 16px" }}>
+            <NoteLegend />
+          </div>
+        )}
 
         {/* Next-slide preview — a scaled-down real render of the upcoming slide */}
         {nextSlide && (
@@ -233,6 +257,7 @@ export function PresenterNotes() {
               display: "flex",
               alignItems: "center",
               gap: "16px",
+              position: "relative",
             }}
           >
             <div
@@ -270,6 +295,23 @@ export function PresenterNotes() {
               >
                 <SlideRenderer slide={nextSlide} slideIndex={index + 1} isFullscreen={false} />
               </div>
+            </div>
+            <div
+              style={{
+                position: "absolute",
+                bottom: "4px",
+                right: "4px",
+                width: "16px",
+                height: "16px",
+                color: tokens.colorNeutralForeground4,
+                fontSize: "12px",
+                lineHeight: 1,
+                cursor: "se-resize",
+                userSelect: "none",
+              }}
+              title="Resize window"
+            >
+              ⋰
             </div>
           </div>
         )}

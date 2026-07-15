@@ -56,7 +56,7 @@ export function Beat({ children }: { children: ReactNode }) {
 }
 
 const legendItemStyle: React.CSSProperties = {
-  display: "inline-flex",
+  display: "flex",
   alignItems: "center",
   gap: "6px",
   fontSize: "11px",
@@ -68,6 +68,7 @@ const swatchBase: React.CSSProperties = {
   width: "10px",
   height: "10px",
   borderRadius: "2px",
+  flexShrink: 0,
 };
 
 export function NoteLegend() {
@@ -75,8 +76,8 @@ export function NoteLegend() {
     <div
       style={{
         display: "flex",
-        gap: "16px",
-        flexWrap: "wrap",
+        flexDirection: "column",
+        gap: "6px",
         opacity: 0.7,
       }}
     >
