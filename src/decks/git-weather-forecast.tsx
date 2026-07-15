@@ -3,7 +3,7 @@ import { tokens } from "@fluentui/react-components";
 import { ComponentFrame } from "../deck-engine/ComponentFrame";
 import { CopyLinkButton } from "../deck-engine/CopyLinkButton";
 import { DemoSprintVelocity } from "./DemoSprintVelocity";
-import { Say, Beat } from "../deck-engine/PresenterNoteKit";
+import { Say, Beat, Context } from "../deck-engine/PresenterNoteKit";
 import type { Deck, Slide } from "./types";
 
 const REPO_URL = "https://github.com/johnfrog76/connected-deck";
@@ -1675,10 +1675,19 @@ export const gitWeatherForecastDeck: Deck = {
       title: "Team Development:\nGit as a 10-Day Forecast",
       notes: (
         <>
-          <Beat>Open warm.</Beat>
-          <Say>“We track weather because it changes fast. We track git because it changes faster.”</Say>
-          <Say>This deck reads your team&apos;s development climate like a forecast.</Say>
-          <Beat>The whole visual language is CSS-as-art — no images, all gradients and motion</Beat>
+          <Beat>Open warm and unhurried — this is a metaphor deck, so set a light tone.</Beat>
+          <Say>
+            We track the weather because it changes fast. We track git because it changes faster.
+          </Say>
+          <Say>
+            For the next ten minutes we&apos;re going to read your team&apos;s development climate the
+            way you&apos;d read a ten-day forecast.
+          </Say>
+          <Context>
+            The whole deck is CSS-as-art — no images, every scene is gradients and motion. Good
+            answer if someone asks about it afterward.
+          </Context>
+          <Beat>Let the title sit a moment before advancing — the sky sells the premise.</Beat>
         </>
       ),
       content: <TitleVisual />,
@@ -1695,9 +1704,17 @@ export const gitWeatherForecastDeck: Deck = {
       title: "Software Has Weather. Git Shows It.",
       notes: (
         <>
-          <Beat>Set the metaphor mapping.</Beat>
-          <Say>“Commits are wind. Churn is pressure. PRs are storm fronts.”</Say>
-          <Say>Weather metaphors make team velocity intuitive — everyone already reads a forecast.</Say>
+          <Beat>Establish the three mappings crisply — everything downstream leans on them.</Beat>
+          <Say>Commits are wind. Churn is pressure. Pull requests are storm fronts.</Say>
+          <Say>
+            You already know how to read a forecast. So does everyone in this room — that&apos;s the
+            whole reason the metaphor works.
+          </Say>
+          <Context>
+            Tone stays intuitive here, not technical. You&apos;re handing them a lens, not a
+            dashboard — the rigor arrives later, in the instruments section.
+          </Context>
+          <Beat>Point at each term as it maps to its weather twin, then advance.</Beat>
         </>
       ),
       content: <WhyVisual />,
@@ -1721,8 +1738,16 @@ export const gitWeatherForecastDeck: Deck = {
       title: "Calm Start, High Confidence",
       notes: (
         <>
-          <Beat>Every sprint starts with optimism.</Beat>
-          <Say>The forecast looks great — until the first cold front hits.</Say>
+          <Beat>Lighten up — this is the calm before everything goes sideways.</Beat>
+          <Say>
+            Every sprint opens like this. The board is groomed, the plan is clean, nothing has
+            drifted yet. The forecast looks great.
+          </Say>
+          <Context>
+            Foreshadow without saying it — the room knows this feeling, and knows it doesn&apos;t
+            last. Let the irony do the work.
+          </Context>
+          <Beat>Beat on &ldquo;looks great,&rdquo; then advance into the first cloud.</Beat>
         </>
       ),
       content: <ClearSkiesVisual />,
@@ -1739,8 +1764,14 @@ export const gitWeatherForecastDeck: Deck = {
       title: "Requirements Drift In",
       notes: (
         <>
-          <Beat>Clouds represent uncertainty.</Beat>
-          <Say>Requirements always drift — even if the sprint plan doesn&apos;t.</Say>
+          <Say>
+            Day two, the first cloud on the horizon — the first &ldquo;what if we also&hellip;&rdquo;
+          </Say>
+          <Context>
+            Clouds are uncertainty, not danger yet. Requirements always drift, even when the sprint
+            plan holds perfectly still.
+          </Context>
+          <Beat>Keep it quick — this is a step in a rising sequence, not a resting point.</Beat>
         </>
       ),
       content: <FirstCloudVisual />,
@@ -1757,8 +1788,12 @@ export const gitWeatherForecastDeck: Deck = {
       title: "Churn Begins",
       notes: (
         <>
-          <Beat>Churn is atmospheric pressure.</Beat>
-          <Say>Small commits accumulate into a weather system.</Say>
+          <Say>
+            Day three, churn begins. The commits are still small — but small commits accumulate into
+            a weather system. You can see it in those wind streaks picking up behind me.
+          </Say>
+          <Context>Churn is atmospheric pressure: invisible until it&apos;s already built.</Context>
+          <Beat>Let a couple of wind streaks finish drawing before you move on.</Beat>
         </>
       ),
       content: <PressureVisual />,
@@ -1775,8 +1810,16 @@ export const gitWeatherForecastDeck: Deck = {
       title: "First Major PR Hits",
       notes: (
         <>
-          <Beat>Lightning is a big PR</Beat>
-          <Say>— high energy, high risk. This is when the sprint forecast changes.</Say>
+          <Beat>Raise your energy — first real jolt of the sprint.</Beat>
+          <Say>
+            Day four, the first major PR hits. High energy, high risk — one strike lights up the
+            whole sky and rewrites the forecast.
+          </Say>
+          <Context>
+            This is the pivot from &ldquo;calm start&rdquo; to &ldquo;storm.&rdquo; Everything after
+            here is weather management.
+          </Context>
+          <Beat>Time a line to a lightning flash if you can, then advance into the live data.</Beat>
         </>
       ),
       content: <LightningVisual />,
@@ -1793,17 +1836,20 @@ export const gitWeatherForecastDeck: Deck = {
       title: "Team Velocity Surges",
       notes: (
         <>
-          <Beat>This is the storm front made real.</Beat>
-          <Say>Multiple engineers pushing hard shows up as churn and velocity.</Say>
+          <Beat>Shift register: the metaphor just became measurement. Slow down here.</Beat>
           <Say>
-            This is the live SprintVelocity card — commits, merges, churn, my-share, all read from
-            git history.
+            This is the storm front made real. Several engineers pushing hard shows up as churn and
+            velocity — and here it is, read straight from git history.
           </Say>
+          <Context>
+            Live SprintVelocity card: commits, merges, churn, and my-share all come from the repo.
+            Nothing here is staged for the slide.
+          </Context>
           <Beat>
-            Point at the churn tiles: that&apos;s the atmospheric pressure we&apos;ve been talking
-            about, now measured
+            Point at the churn tiles — &ldquo;that&apos;s the atmospheric pressure we&apos;ve been
+            talking about, now measured.&rdquo;
           </Beat>
-          <Beat>Git becomes a radar map — the storm isn&apos;t a metaphor here, it&apos;s the data</Beat>
+          <Say>The storm stops being a metaphor here. It&apos;s the data.</Say>
         </>
       ),
       content: <StormVelocityVisual />,
@@ -1830,27 +1876,30 @@ export const gitWeatherForecastDeck: Deck = {
       title: "Git Is Already a Weather Station",
       notes: (
         <>
-          <Beat>Deliberately drop the temperature here</Beat>
-          <Say>— the fun visuals stop; this is the barometer.</Say>
+          <Beat>Deliberately drop the temperature — the fun visuals stop. This is the barometer.</Beat>
           <Say>
-            These are the real goStressCheck readouts. The point: git already hands you leading
-            indicators, we just rarely look until a weather event forces us to.
+            Git already hands you leading indicators. We just rarely look until a weather event
+            forces us to.
           </Say>
+          <Context>
+            These are the real goStressCheck readouts, with their real deficit-health thresholds —
+            not illustrative numbers.
+          </Context>
+          <Say>
+            Upstream merges are your drift from origin/main since you branched — a collision radar.
+            Rising drift means the merge you haven&apos;t done yet is getting worse.
+          </Say>
+          <Say>
+            Surface area is churn over files touched. Wide-and-shallow is a breeze; narrow-and-deep
+            is a pressure cell.
+          </Say>
+          <Context>
+            Merge velocity and cadence are throughput and rhythm — falling velocity late in a sprint
+            is a pressure drop.
+          </Context>
           <Beat>
-            Upstream merges = drift from origin/main since you branched. It&apos;s your collision
-            radar — rising drift means the merge you haven&apos;t done yet is getting worse.
-          </Beat>
-          <Beat>
-            Surface area = churn (lines changed) over files touched. Wide-and-shallow is a breeze;
-            narrow-and-deep is a pressure cell.
-          </Beat>
-          <Beat>
-            Merge velocity and cadence are throughput and rhythm — falling velocity late in a
-            sprint is a pressure drop.
-          </Beat>
-          <Beat>
-            Land it: none of these are the storm. They&apos;re the barometer that falls before the
-            front arrives.
+            Land it slowly: none of these are the storm — they&apos;re the barometer that falls
+            before the front arrives.
           </Beat>
         </>
       ),
@@ -1879,20 +1928,22 @@ export const gitWeatherForecastDeck: Deck = {
       title: "Cheap Plumbing, Early Warning",
       notes: (
         <>
-          <Beat>The genuinely boring slide — own it.</Beat>
-          <Say>No motion, just the arithmetic.</Say>
+          <Beat>The genuinely boring slide — own it. No motion, just the arithmetic.</Beat>
           <Say>
             goStressCheck fetches origin, finds the merge-base, and counts what&apos;s landed
-            upstream since you branched. That drift, plus churn surface area and 3-day velocity,
-            feed simple deficit thresholds.
+            upstream since you branched.
           </Say>
+          <Say>
+            That drift, plus churn surface area and three-day velocity, feeds a few simple deficit
+            thresholds. That&apos;s the whole engine — merge-base, rev-list --count, diff --shortstat.
+          </Say>
+          <Context>
+            The trick is timing, not cleverness: it runs the forecast before the merge, not after the
+            conflict.
+          </Context>
           <Beat>
-            The whole trick: it runs the forecast BEFORE the merge, not after the conflict. Cheap
-            git plumbing — merge-base, rev-list --count, diff --shortstat.
-          </Beat>
-          <Beat>
-            Pre-empt the question: no ML, no model. Just counting the right things early and
-            coloring them against a threshold.
+            Pre-empt the ML question: no model. Just counting the right things early and coloring them
+            against a threshold.
           </Beat>
         </>
       ),
@@ -1921,22 +1972,22 @@ export const gitWeatherForecastDeck: Deck = {
       title: "Hot Files Behave Like Hot Air",
       notes: (
         <>
-          <Beat>Still in instrument mode — one more reading: heat.</Beat>
+          <Context>Still in instrument mode — one more reading: heat.</Context>
           <Say>
-            Some files are calm, some are warm, and a few are red-hot: every change to them
-            triggers turbulence.
+            Some files are calm, some are warm, and a few are red-hot — every change to them triggers
+            turbulence.
+          </Say>
+          <Context>
+            This is git log --name-only aggregated per file: touch frequency over the last N weeks.
+            Cheap to compute, brutally honest.
+          </Context>
+          <Say>
+            The hot files are never a surprise to the team — but they are a surprise to the roadmap.
+            Estimation should price in file temperature.
           </Say>
           <Beat>
-            This is <code>git log --name-only</code> aggregated per file — touch frequency over
-            the last N weeks. Cheap to compute, brutally honest.
-          </Beat>
-          <Beat>
-            The hot files are almost never a surprise to the team — but they ARE a surprise to the
-            roadmap. Estimation should price in file temperature.
-          </Beat>
-          <Beat>
-            Practical move: before a sprint, glance at the map. Work landing in red files gets a
-            risk multiplier; work in blue files doesn&apos;t.
+            Practical close: before a sprint, glance at the map. Work landing in red files gets a risk
+            multiplier; work in blue files doesn&apos;t.
           </Beat>
         </>
       ),
@@ -1964,20 +2015,22 @@ export const gitWeatherForecastDeck: Deck = {
       title: "Churn Has Direction, Not Just Magnitude",
       notes: (
         <>
-          <Beat>Churn has direction, not just magnitude.</Beat>
-          <Say>Same line count, completely different weather.</Say>
-          <Beat>Feature churn flows forward — long straight arrows, new files, additive diffs.</Beat>
+          <Say>
+            Churn has direction, not just magnitude. The same line count can be completely different
+            weather.
+          </Say>
+          <Say>
+            Feature churn flows forward — long straight arrows, new files, additive diffs. Refactor
+            churn spirals: the same modules revisited from new angles. Looks alarming in raw numbers,
+            usually healthy.
+          </Say>
+          <Say>
+            And bug churn hammers the same spot over and over — those three short red arrows into one
+            file are the signature of a design problem, not bad luck.
+          </Say>
           <Beat>
-            Refactor churn spirals — it revisits the same modules from different angles. Looks
-            alarming in raw numbers, usually healthy.
-          </Beat>
-          <Beat>
-            Bug churn hammers the same spot over and over. Three short arrows into one file is the
-            signature of a design problem, not bad luck.
-          </Beat>
-          <Beat>
-            Diagnostic: when churn is high, ask WHICH pattern before reacting. The fix for each is
-            different.
+            Diagnostic takeaway: when churn is high, ask which pattern before reacting — the fix for
+            each is different.
           </Beat>
         </>
       ),
@@ -2006,8 +2059,16 @@ export const gitWeatherForecastDeck: Deck = {
       title: "High Churn, High Throughput",
       notes: (
         <>
-          <Beat>This is where teams earn their reputation.</Beat>
-          <Say>The repo is alive — commits flying, pipelines running.</Say>
+          <Beat>Back to weather, energy high — the repo is fully alive.</Beat>
+          <Say>
+            Day six: high churn, high throughput. Commits flying, pipelines running — this is where
+            teams earn their reputation.
+          </Say>
+          <Context>
+            Don&apos;t moralize the chaos yet — this looks like productivity, and often is. The catch
+            comes on the backside.
+          </Context>
+          <Beat>Quick pace — ride the lightning striking the bars straight into the eye.</Beat>
         </>
       ),
       content: <WallOfWorkVisual />,
@@ -2024,11 +2085,16 @@ export const gitWeatherForecastDeck: Deck = {
       title: "Temporary Calm — Not Safety",
       notes: (
         <>
-          <Beat>The eye is deceptive</Beat>
+          <Beat>Drop your voice — the room should feel the false calm.</Beat>
           <Say>
-            — it feels calm, but the storm continues. This is when someone says “we&apos;re
-            actually on track.”
+            Day seven, the eye. It feels calm — and that&apos;s exactly when someone says
+            &ldquo;we&apos;re actually on track.&rdquo;
           </Say>
+          <Say>But the eye is deceptive — the wall is still spinning right around you.</Say>
+          <Context>
+            This is the most dangerous moment emotionally: it&apos;s safety that isn&apos;t real.
+          </Context>
+          <Beat>Hold the quiet a beat longer than feels comfortable, then break it with the backside.</Beat>
         </>
       ),
       content: <EyeVisual />,
@@ -2045,8 +2111,16 @@ export const gitWeatherForecastDeck: Deck = {
       title: "PR Review Flood",
       notes: (
         <>
-          <Beat>The backside of the storm is always worse.</Beat>
-          <Say>PR reviews stack, comments fly, pipelines break.</Say>
+          <Beat>Snap the energy back up — the second front hits hard.</Beat>
+          <Say>
+            Day eight: the PR review flood. Reviews stack, comments fly, pipelines break. The
+            backside of a storm is always worse.
+          </Say>
+          <Say>
+            Notice the lightning is coming from the opposite direction now — the review queue is a
+            second front, not an aftershock.
+          </Say>
+          <Beat>This closes the ten-day arc — next we pull up and out to climate.</Beat>
         </>
       ),
       content: <BacksideVisual />,
@@ -2063,9 +2137,20 @@ export const gitWeatherForecastDeck: Deck = {
       title: "AI Raises the Temperature of Development",
       notes: (
         <>
-          <Beat>AI isn&apos;t a storm — it&apos;s heat.</Beat>
-          <Say>Heat increases volatility. Volatility creates storms.</Say>
-          <Say>Suddenly a tiny commit becomes a tropical storm.</Say>
+          <Beat>Reframe: we&apos;re leaving the single sprint and talking climate now.</Beat>
+          <Say>
+            AI isn&apos;t a storm. It&apos;s heat. And heat raises volatility — volatility is what
+            makes storms.
+          </Say>
+          <Say>
+            Suddenly a tiny commit becomes a tropical storm. The system runs hotter, so weather forms
+            faster.
+          </Say>
+          <Context>
+            Watch the tone — this is not anti-AI. It&apos;s &ldquo;the climate shifted, read it
+            accordingly.&rdquo;
+          </Context>
+          <Beat>Advance into extreme weather as the payoff for &ldquo;storms form faster.&rdquo;</Beat>
         </>
       ),
       content: <HeatVisual />,
@@ -2084,11 +2169,16 @@ export const gitWeatherForecastDeck: Deck = {
       title: "Large Weather Events Become Normal",
       notes: (
         <>
-          <Beat>AI-heated climates produce extreme events.</Beat>
           <Say>
-            10k+ churn days, multi-repo refactors, pipeline storms. Exciting — sometimes too
-            exciting.
+            AI-heated climates produce extreme events: ten-thousand-churn days, multi-repo refactors,
+            pipeline storms.
           </Say>
+          <Say>
+            That data tornado bearing down on you — 1s and 0s tearing through the frame — is the
+            point. The extremes stop being exceptional.
+          </Say>
+          <Context>Exciting — sometimes a little too exciting. Keep the tone amused, not alarmed.</Context>
+          <Beat>Let the tornado approach as you talk — time your last line to when it fills the frame.</Beat>
         </>
       ),
       content: <ExtremeVisual />,
@@ -2107,8 +2197,16 @@ export const gitWeatherForecastDeck: Deck = {
       title: "Quarterly KPIs = Calm, Predictable Weather",
       notes: (
         <>
-          <Beat>In-house teams often operate in mild climates.</Beat>
-          <Say>Long planning cycles. Granular changes. Very stable forecasts.</Say>
+          <Beat>Full tonal reset — sun, grass, birdsong. Let people breathe.</Beat>
+          <Say>
+            Not every team lives in the storm. In-house teams often run mild climates: long planning
+            cycles, granular changes, very stable forecasts.
+          </Say>
+          <Context>
+            Crucial framing: mild is a different climate, not a worse one. Don&apos;t let the calm
+            read as a value judgment against the stormy teams.
+          </Context>
+          <Beat>&ldquo;You can actually finish your sandwich&rdquo; is a laugh line — let it land.</Beat>
         </>
       ),
       content: <MildVisual />,
@@ -2127,11 +2225,18 @@ export const gitWeatherForecastDeck: Deck = {
       title: "Stormy vs. Sunny — Both Valid, Both Fun",
       notes: (
         <>
-          <Beat>Both are great places to live. Just pack different clothes.</Beat>
           <Say>
-            Some teams live in Florida — storms every afternoon. Some live in San Diego — 72° and
-            sunny forever.
+            Some teams live in Florida — storms every afternoon. Some live in San Diego —
+            seventy-two and sunny forever. Both are great places to live.
           </Say>
+          <Say>
+            The job isn&apos;t to make it sunny. It&apos;s to know which climate you&apos;re in and
+            dress for it.
+          </Say>
+          <Beat>
+            Gesture the split — storm side, then sunny side — then bring it together on &ldquo;pack
+            different clothes.&rdquo;
+          </Beat>
         </>
       ),
       content: <TwoClimatesVisual />,
@@ -2150,18 +2255,23 @@ export const gitWeatherForecastDeck: Deck = {
       title: "Git Predicts Storms Before They Form",
       notes: (
         <>
-          <Beat>Pull it all together before the close.</Beat>
+          <Beat>Pull it all together before the close — this is the synthesis slide.</Beat>
           <Say>
-            Every reading so far — drift, surface area, heat, vectors — feeds one picture: the
-            radar.
+            Every reading so far — drift, surface area, heat, vectors — feeds one picture: the radar.
+            Pressure before the storm, drift before the merge, heat before the churn spike.
           </Say>
-          <Beat>It shows pressure before the storm. Drift before the merge. Heat before the churn spike.</Beat>
+          <Say>
+            Small blips are commits, big blips are PRs, and that red cell is a multi-repo change
+            forming.
+          </Say>
+          <Say>
+            A reactive team learns about the storm from the merge conflict. A forecasting team saw
+            the cell forming three days out. Same data, same repo — the difference is looking.
+          </Say>
           <Beat>
-            This is the difference between forecasting and reacting: the reactive team learns
-            about the storm from the merge conflict; the forecasting team saw the cell forming
-            three days out.
+            This is the intellectual climax — land it firmly, then let the punchline carry the
+            emotional one.
           </Beat>
-          <Beat>Small blips are commits, big blips are PRs, the red cell is a multi-repo change forming.</Beat>
         </>
       ),
       content: <RadarVisual />,
@@ -2188,10 +2298,13 @@ export const gitWeatherForecastDeck: Deck = {
       title: "If You Can Read the Climate,\nYou Can Lead the Team",
       notes: (
         <>
-          <Beat>Land the close slowly.</Beat>
-          <Say>“Leadership isn&apos;t about controlling the weather.”</Say>
-          <Say>“It&apos;s about forecasting the climate your team operates in. Git is your radar.”</Say>
-          <Beat>Pause before Q&amp;A</Beat>
+          <Beat>Land the close slowly — drop your cadence for the last two lines.</Beat>
+          <Say>
+            Leadership isn&apos;t about controlling the weather. It&apos;s about forecasting the
+            climate your team operates in.
+          </Say>
+          <Say>Git is your radar.</Say>
+          <Beat>Hold on &ldquo;Git is your radar&rdquo; — let it sit before you open Q&amp;A.</Beat>
         </>
       ),
       content: <PunchlineVisual />,
@@ -2211,9 +2324,15 @@ export const gitWeatherForecastDeck: Deck = {
       title: "Thank You",
       notes: (
         <>
-          <Beat>The warm close.</Beat>
-          <Say>Let the flock cross while you thank the room — dwell here.</Say>
-          <Say>Skies clear at sunset, birds heading home. Open it up for questions.</Say>
+          <Beat>The warm close — dwell here, don&apos;t rush off the stage.</Beat>
+          <Say>
+            And the forecast finally clears — a last beautiful arc of fire sinking behind the
+            mountains, the flock heading home.
+          </Say>
+          <Say>
+            Read the climate, lead the team — and enjoy the clear skies between the storms. Thank you.
+          </Say>
+          <Beat>Let the birds finish their crossing, then open it up for questions.</Beat>
         </>
       ),
       content: <ThankYouVisual />,
