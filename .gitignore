@@ -2,3 +2,9 @@ node_modules/
 dist/
 *.log
 .DS_Store
+.env
+
+# Narration audio, write-through cached by server/index.js — regenerated
+# on demand from Azure Speech, so it doesn't need to be committed. Delete
+# a file (or the whole dir) any time to force that slide to re-synthesize.
+public/voices/

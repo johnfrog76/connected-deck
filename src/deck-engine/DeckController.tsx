@@ -17,6 +17,7 @@ export function useDeckController(
   goNext: () => void;
   goPrev: () => void;
   toggleFullscreen: () => void;
+  exitDeck: () => void;
 } {
   const navigate = useNavigate();
   const [slideIndex, setSlideIndex] = useState(0);
@@ -36,6 +37,15 @@ export function useDeckController(
       document.exitFullscreen().catch(() => {});
     }
   }, []);
+
+  // Exiting the deck must tell any popped-out speaker-notes window to close
+  // itself — otherwise it's orphaned, still listening on a BroadcastChannel for
+  // a deck that's no longer running. Broadcast "deck-closed" before navigating
+  // away so the notes window (which listens on the same channel) can close.
+  const exitDeck = useCallback(() => {
+    channelRef.current?.postMessage({ type: "deck-closed" });
+    navigate(-1);
+  }, [navigate]);
 
   useEffect(() => {
     setSlideIndex(0);
@@ -62,7 +72,7 @@ export function useDeckController(
           goPrev();
           break;
         case "Escape":
-          navigate(-1);
+          exitDeck();
           break;
         case "f":
         case "F":
@@ -72,7 +82,7 @@ export function useDeckController(
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [goNext, goPrev, navigate, toggleFullscreen]);
+  }, [goNext, goPrev, exitDeck, toggleFullscreen]);
 
   // BroadcastChannel — open/close keyed on the deck. Also accepts "goto"
   // messages from the presenter-notes window so it can drive the deck
@@ -99,5 +109,5 @@ export function useDeckController(
     });
   }, [slideIndex, slides.length]);
 
-  return { slideIndex, isFullscreen, goNext, goPrev, toggleFullscreen };
+  return { slideIndex, isFullscreen, goNext, goPrev, toggleFullscreen, exitDeck };
 }

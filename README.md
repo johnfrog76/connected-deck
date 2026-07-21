@@ -36,21 +36,30 @@ src/
   deck-engine/            the reusable engine — navigation, chrome, zoom,
                            presenter notes, fullscreen, keyboard control
     DeckController.tsx    slide index, fullscreen state, keyboard nav,
-                           cross-window BroadcastChannel sync
+                           cross-window BroadcastChannel sync (also signals
+                           the notes window to close on deck exit)
     SlideRenderer.tsx     60/40 layout: live content on the left, talking
                            points on the right (or full-width copy-only)
     DeckChrome.tsx        bottom nav bar: exit, prev/next, notes, fullscreen
+                           (the notes button opens the popup at the current slide)
     ComponentFrame.tsx    wraps any real component for use inside a slide —
                           scales it, gives it a design-grid backdrop, and
                           adds a live zoom control you can drive mid-talk
     PresenterNotes.tsx    a second-screen presenter view (own tab/window):
-                          notes, a timer, and a live next-slide preview —
-                          the actual upcoming slide, rendered via
-                          SlideRenderer and scaled down, not just its text
+                          notes, a timer, a live next-slide preview — the
+                          actual upcoming slide, rendered via SlideRenderer
+                          and scaled down, not just its text — and the
+                          narration controls (play-with-narration + voice picker)
     PresenterNoteKit.tsx  Say / Context / Beat building blocks for composing
                           a slide's notes — see "The slide-authoring
                           contract" below
-    DeckPickerCard.tsx    a "deck picker" card listing every registered deck
+    sayText.ts            shared Say-text extraction — the single source of
+                          truth for "what the narrator actually speaks",
+                          used by both narration and the duration estimate
+    deckDuration.ts        approximate-time estimator (read speed + dwell)
+                          and the tunable rate/dwell constants
+    DeckPickerCard.tsx    a "deck picker" card listing every registered deck,
+                          its slide count, and an approximate-length badge
     SlidePlaceholder.tsx  a dashed-border "visual to build" stand-in — drop
                           it into a slide's `content` while sketching a deck
 
@@ -73,6 +82,12 @@ src/
                           up DeckController + SlideRenderer + DeckChrome
   App.tsx, main.tsx       a minimal host app: a deck picker at `/` and the
                           deck routes
+
+server/
+  index.js                 the one piece of backend in this repo: a small
+                           Express server exposing POST /api/narrate for
+                           narration (Azure Speech). Everything else is
+                           served statically by Vite with no server at all.
 ```
 
 ## The slide-authoring contract
@@ -83,9 +98,16 @@ just React:
 ```ts
 export interface Slide {
   id: string;
-  copy: ReactNode;      // talking points / title panel
-  content?: ReactNode;  // the live visual — omit for a full-width copy slide
-  notes?: ReactNode;    // shown in the presenter-notes window
+  title?: string;          // plain-text anchor shown full-sized in the
+                           // presenter-notes window, and read aloud first by
+                           // narration (before the Say lines) — should match
+                           // the visible title inside `copy`
+  copy: ReactNode;         // talking points / title panel
+  content?: ReactNode;     // the live visual — omit for a full-width copy slide
+  notes?: ReactNode;       // shown in the presenter-notes window
+  approximateTime?: string; // optional "mm:ss" override for the deck-picker's
+                           // length badge; omit to let it be computed from
+                           // the Say text (see "deck-engine/deckDuration.ts")
 }
 
 export interface Deck {
@@ -138,15 +160,25 @@ npm install
 npm run dev
 ```
 
-Open the printed local URL, and use the deck picker to jump into
-**Getting Started** (the bare-bones tour) or **Git as a 10-Day Forecast**
-(the full production deck). Controls:
+`npm run dev` starts the Vite dev server *and* the narrate server together
+(via `concurrently` — see "Presenter mode & narration" below), on ports 5174
+and 5175 respectively. The narrate server is only needed for that one
+feature, so it's fine if you never touch it or its port. `npm run dev:client`
+/ `npm run dev:server` start either one alone if you ever need to. Everything
+narration-related is optional — if you want it, copy `.env.example` to
+`.env` and fill in your Azure Speech key first (see "Presenter mode &
+narration"); if not, skip it entirely and the rest of the app is unaffected.
+
+Open the printed local URL, and use the deck picker to jump into **Getting
+Started** (the bare-bones tour) or **Git as a 10-Day Forecast** (the full
+production deck). Controls:
 
 - `→` / `Space` — next slide, `←` — previous slide
 - `F` — toggle fullscreen
-- `Esc` — exit the deck
-- speaker icon in the bottom bar — opens presenter notes in a second window,
-  which can also drive the main deck's slide position
+- `Esc` — exit the deck (also closes the notes window if it's open)
+- speaker icon in the bottom bar — opens presenter notes in a second window
+  (scoped to the slide you're currently on), which can also drive the main
+  deck's slide position
 
 ## Bringing your own decks
 
@@ -163,6 +195,55 @@ Redux store, an RTK Query hook, a REST call — the engine doesn't care).
 If you want a slide to stay stable across a live demo (so it doesn't drift as
 your data changes underneath you), do what `DemoSprintVelocity` does here:
 pass the component a frozen snapshot instead of a live query.
+
+## Presenter mode & narration
+
+The presenter-notes window (opened from the speaker icon in the bottom bar)
+is the presenter's private surface: notes, a timer, a live next-slide
+preview — and narration.
+
+- **Play with narration.** A toggle in the notes header reads the current
+  slide's `Say` text aloud (its `title` first, then the `Say` lines). It's a
+  *mode*, not a one-shot: it stays on across slide changes, cutting the old
+  audio and reading the new slide as you navigate. `Context` and `Beat` are
+  never spoken — only `Say`.
+- **Voice picker.** A small dropdown next to the toggle chooses the voice
+  (currently **Jenny** / **Brian**). The choice persists in `localStorage`, so
+  a preference sticks across reloads and decks. Switching voice mid-slide
+  re-narrates the current slide in the new voice.
+- **How it works.** This is the one feature in the repo that needs a
+  backend. The notes window POSTs the `Say` text to `POST /api/narrate`, a
+  small Express server (`server/index.js`) that calls Azure Speech neural
+  TTS and returns mp3 audio. It requires `AZURE_SPEECH_KEY` /
+  `AZURE_SPEECH_REGION` — copy `.env.example` to `.env` and fill them in
+  (get a key from an Azure Speech resource in the portal, under "Keys and
+  Endpoint"), then `npm run dev` as usual — it starts both the Vite dev
+  server and the narrate server. Without a `.env`, everything else in the
+  app works exactly the same.
+- **On/off is a single switch, deliberately.** The narration toggle and
+  voice picker disable themselves (with an explanatory tooltip) whenever
+  `AZURE_SPEECH_KEY` / `AZURE_SPEECH_REGION` aren't set — checked once via
+  `GET /api/narrate/status`. That check only looks at whether the key is
+  configured, **not** whether a given slide already has cached audio on
+  disk. So even a slide with a committed, ready-to-play mp3 stays behind the
+  same on/off switch as one that's never been synthesized — a deliberate
+  simplification (one predictable gate, not a per-slide cache check) over
+  precision (letting already-cached slides play with no key at all). If you
+  commit narration audio for a deck so it plays for people who never set up
+  a key, know that this gate currently blocks that path — the toggle stays
+  disabled for them regardless of what's on disk.
+- **Caching.** Audio is written through to
+  `public/voices/{deck}/{slide}-{voice}.mp3`, keyed by `(deck, slide,
+  voice)`. Repeat plays — same slide, same voice — are a disk hit with no
+  Azure call, and each voice caches independently. These files are
+  gitignored by default (regenerate on demand); commit them yourself if you
+  want the audio itself preserved (e.g. for a static deploy, or so a
+  contributor with a key doesn't have to re-bake a deck from scratch) —
+  just note the point above about the toggle still requiring a key to reach
+  them through the UI.
+
+The deck surface (`SlideRenderer` — the content/copy split the room sees)
+stays untouched by any of this; narration lives entirely in the notes popup.
 
 ## Design notes
 
@@ -185,8 +266,10 @@ pass the component a frozen snapshot instead of a live query.
 ## Stack
 
 React 18, TypeScript, Vite, Fluent UI v9 (`@fluentui/react-components`),
-React Router, Recharts, react-markdown. No backend required to run the
-sample deck — `DemoSprintVelocity` uses synthetic, hard-coded data.
+React Router, Recharts, react-markdown. No backend is required to *view* a
+deck — `DemoSprintVelocity` uses synthetic, hard-coded data. Narration is the
+one feature that calls a backend (a small Express server, `server/index.js`
+→ Azure Speech); everything else runs client-side.
 
 ## License
 

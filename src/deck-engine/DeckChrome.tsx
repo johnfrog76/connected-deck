@@ -83,7 +83,10 @@ export function DeckChrome({
             const left = window.screenX + (window.innerWidth - NOTES_WIDTH) / 2;
             const top = window.screenY + (window.innerHeight - NOTES_HEIGHT) / 2;
             window.open(
-              `/deck/${deckId}/notes`,
+              // Hand the notes window the slide the deck is currently on, so
+              // opening notes late (already past slide 1) follows the deck
+              // instead of resetting to slide 1.
+              `/deck/${deckId}/notes?slide=${slideIndex}`,
               "_blank",
               `width=${NOTES_WIDTH},height=${NOTES_HEIGHT},left=${Math.round(left)},top=${Math.round(top)}`
             );

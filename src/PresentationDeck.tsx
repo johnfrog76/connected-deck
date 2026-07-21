@@ -16,7 +16,7 @@ export function PresentationDeck() {
   const deck = DECKS.find((d) => d.id === deckId);
   const slides = useMemo(() => deck?.createSlides() ?? [], [deck]);
 
-  const { slideIndex, isFullscreen, goNext, goPrev, toggleFullscreen } =
+  const { slideIndex, isFullscreen, goNext, goPrev, toggleFullscreen, exitDeck } =
     useDeckController(slides, deckId);
 
   if (!deck) {
@@ -43,7 +43,7 @@ export function PresentationDeck() {
         <DeckChrome
           slideIndex={slideIndex} slides={slides} deckId={deckId ?? ""}
           isFullscreen={isFullscreen} goNext={goNext} goPrev={goPrev}
-          toggleFullscreen={toggleFullscreen} onExit={() => navigate(-1)}
+          toggleFullscreen={toggleFullscreen} onExit={exitDeck}
         />
       </div>
     </FluentProvider>

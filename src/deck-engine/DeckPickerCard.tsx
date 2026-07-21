@@ -1,7 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import { Button, Badge, Subtitle2, tokens, makeStyles, Card } from "@fluentui/react-components";
-import { ArrowRightRegular } from "@fluentui/react-icons";
+import { ArrowRightRegular, Clock12Regular } from "@fluentui/react-icons";
 import { DECKS } from "../decks/index";
+import { estimateDeckDuration } from "./deckDuration";
 import { PageCard } from "../shared/PageCard";
 
 const usePickerStyles = makeStyles({
@@ -65,7 +66,9 @@ export function DeckPicker() {
   return (
     <div className={styles.list}>
       {DECKS.map((deck) => {
-        const slideCount = deck.createSlides().length;
+        const slides = deck.createSlides();
+        const slideCount = slides.length;
+        const duration = estimateDeckDuration(slides);
         return (
           <Card key={deck.id} size="small" appearance="outline" className={styles.card}>
             <div className={styles.cardItem}>
@@ -82,6 +85,15 @@ export function DeckPicker() {
                   </span>
                 </div>
               </div>
+              <Badge
+                appearance="tint"
+                color="success"
+                size="small"
+                icon={<Clock12Regular />}
+                title={`Approximate time to get through this deck (~${duration})`}
+              >
+                {duration}
+              </Badge>
               <Badge appearance="tint" color="informative" size="small">
                 {deck.id}
               </Badge>
