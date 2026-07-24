@@ -12,11 +12,14 @@ too. When you want to show something live during a talk — zoom into a real
 dashboard, run a real command, scroll a real chart — you can, because it
 _is_ the real thing, not a picture of it.
 
-This repo is the engine plus two sample decks: `getting-started` — three
+This repo is the engine plus three sample decks: `getting-started` — three
 plain placeholder slides and a thank-you, showing the bare minimum shape of
-a deck with none of the visual flourish — and `git-weather-forecast`, a full
+a deck with none of the visual flourish — `git-weather-forecast`, a full
 production deck, so you can see both the floor and the ceiling of what the
-same engine can do.
+same engine can do — and `ai-pickles`, a second full production deck (a
+talk on AI-assisted development framed as pickle-making analogies), showing
+that the "ceiling" isn't a one-off: it's a repeatable shape for an original,
+fully illustrated deck.
 
 ## Why this exists
 
@@ -77,6 +80,12 @@ src/
                                 by synthetic sample data — stands in for
                                 the kind of live, store-backed component
                                 you'd swap in from your own app
+    ai-pickles.tsx             a second full production deck: 10 slides of
+                                original CSS/SVG illustration (no shared
+                                components with git-weather-forecast) built
+                                entirely from Say/Context/Beat notes —
+                                proof the "ceiling" scales to a new talk,
+                                not just the one example deck
 
   PresentationDeck.tsx    orchestrator: looks up the deck by :deckId, wires
                           up DeckController + SlideRenderer + DeckChrome
@@ -170,8 +179,9 @@ narration-related is optional — if you want it, copy `.env.example` to
 narration"); if not, skip it entirely and the rest of the app is unaffected.
 
 Open the printed local URL, and use the deck picker to jump into **Getting
-Started** (the bare-bones tour) or **Git as a 10-Day Forecast** (the full
-production deck). Controls:
+Started** (the bare-bones tour), **Git as a 10-Day Forecast**, or
+**Everything I Know About AI Dev I Learned from Pickles** (the two full
+production decks). Controls:
 
 - `→` / `Space` — next slide, `←` — previous slide
 - `F` — toggle fullscreen
