@@ -4,7 +4,7 @@ import { ZoomControl } from "../shared/ZoomControl";
 
 interface ComponentFrameProps {
   children: ReactNode;
-  /** Per-slide initial view zoom (the design constant). Default 100% (1). */
+  /** Per-card initial view zoom (the design constant). Default 100% (1). */
   initialZoom?: number;
   /** Minimum zoom allowed. Default 0.25 (25%). */
   minZoom?: number;
@@ -16,11 +16,11 @@ interface ComponentFrameProps {
 const GRID_BASE = 28;
 
 /**
- * Frames a real, live component for use inside a slide: scale it up, let it
- * bleed off the edges (overflow hidden, top-left origin), and zoom it live
- * mid-talk with the shared ZoomControl.
+ * Frames a real dashboard component for the deck and lends it the shell's
+ * design vocabulary: scale it up, let it bleed off the edges (overflow hidden,
+ * top-left origin), and zoom it live mid-talk with the shared ZoomControl.
  *
- * `initialZoom` is the per-slide design constant for how the component first
+ * `initialZoom` is the per-card design constant for how the component first
  * appears — default 100%. The live control starts there and resets back to it.
  *
  * The grid behind the content scales with the zoom (cell = GRID_BASE * zoom),
@@ -38,9 +38,11 @@ export function ComponentFrame({ children, initialZoom = 1, minZoom = 0.25, noZo
         width: "100%",
         height: "100%",
         position: "relative",
+        // Solid stage so the static panel grid doesn't double up behind us.
         backgroundColor: "#0d0e18",
       }}
     >
+      {/* Grid layer — cell size tracks the zoom so it scales with the content. */}
       <div
         style={{
           position: "absolute",

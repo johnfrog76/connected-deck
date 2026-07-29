@@ -15,20 +15,31 @@ interface CopyLinkButtonProps {
   /** Fixed-position corner placement. Set to null to render inline instead. */
   corner?: "bottom-right" | "bottom-left" | "top-right" | "top-left" | null;
   title?: string;
+  /** White mark over a light translucent circle — for dark closing slides. */
+  inverse?: boolean;
 }
 
 /**
  * A small, transparent GitHub-mark button that copies `url` to the clipboard
  * on click — built for a deck's closing slide ("here's the repo, paste this
- * in Teams"). Pure CSS/SVG, no image asset.
+ * in Teams"). Pure CSS/SVG, no image asset. Default is a dark mark for light
+ * or warm backgrounds; pass `inverse` on dark slides.
  */
-export function CopyLinkButton({ url, corner = "bottom-right", title = "Copy repo link" }: CopyLinkButtonProps) {
+export function CopyLinkButton({
+  url,
+  corner = "bottom-right",
+  title = "Copy repo link",
+  inverse = false,
+}: CopyLinkButtonProps) {
   const [copied, setCopied] = useState(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => () => {
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-  }, []);
+  useEffect(
+    () => () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    },
+    [],
+  );
 
   const handleClick = async () => {
     try {
@@ -75,8 +86,8 @@ export function CopyLinkButton({ url, corner = "bottom-right", title = "Copy rep
           height: "36px",
           borderRadius: "50%",
           border: "none",
-          background: "rgba(0,0,0,0.28)",
-          color: copied ? "#8fe0a0" : "rgba(0,0,0,0.82)",
+          background: inverse ? "rgba(255,255,255,0.14)" : "rgba(0,0,0,0.28)",
+          color: copied ? "#8fe0a0" : inverse ? "rgba(255,255,255,0.92)" : "rgba(0,0,0,0.82)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -84,11 +95,15 @@ export function CopyLinkButton({ url, corner = "bottom-right", title = "Copy rep
           transition: "background 0.15s ease, color 0.15s ease, transform 0.15s ease",
         }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.background = "rgba(0,0,0,0.42)";
+          e.currentTarget.style.background = inverse
+            ? "rgba(255,255,255,0.26)"
+            : "rgba(0,0,0,0.42)";
           e.currentTarget.style.transform = "scale(1.06)";
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.background = "rgba(0,0,0,0.28)";
+          e.currentTarget.style.background = inverse
+            ? "rgba(255,255,255,0.14)"
+            : "rgba(0,0,0,0.28)";
           e.currentTarget.style.transform = "scale(1)";
         }}
       >

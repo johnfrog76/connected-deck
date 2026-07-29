@@ -3,150 +3,195 @@
 A presentation engine for engineers, built on the idea that a slide shouldn't
 have to choose between "looks good" and "is real."
 
-Most technical presentations are static: a screenshot of a dashboard, a
-chart exported as a PNG, a diagram that was accurate the day it was made.
-Connected Deck takes the opposite approach — a slide is just a React
-component, so it can render a live chart, call a real API, or embed an actual
-piece of your product's UI. When the underlying data changes, the slide does
-too. When you want to show something live during a talk — zoom into a real
-dashboard, run a real command, scroll a real chart — you can, because it
-_is_ the real thing, not a picture of it.
+Most technical presentations are static: a screenshot of a dashboard, a chart
+exported as a PNG, a diagram that was accurate the day it was made. Connected
+Deck takes the opposite approach — a slide is just a React component, so it can
+render a live chart, call a real API, or embed an actual piece of your product's
+UI. When the underlying data changes, the slide does too. When you want to show
+something live during a talk — zoom into a real dashboard, scroll a real chart —
+you can, because it _is_ the real thing, not a picture of it.
 
-This repo is the engine plus three sample decks: `getting-started` — three
-plain placeholder slides and a thank-you, showing the bare minimum shape of
-a deck with none of the visual flourish — `git-weather-forecast`, a full
-production deck, so you can see both the floor and the ceiling of what the
-same engine can do — and `ai-pickles`, a second full production deck (a
-talk on AI-assisted development framed as pickle-making analogies), showing
-that the "ceiling" isn't a one-off: it's a repeatable shape for an original,
-fully illustrated deck.
+```bash
+npm install
+npm run dev:client
+```
 
-## Why this exists
+Open the printed URL. Two decks are registered; both play immediately, and the
+trailer reads itself aloud with no key, no server, and no configuration.
 
-Software engineering has genuinely interesting stories to tell — architecture
-decisions, delivery velocity, team health, migrations that actually worked —
-but the tools we reach for to tell them (slide decks built from screenshots)
-flatten everything back into static images. A connected presentation can sit
-directly on top of your app's state and APIs and render *any* of your
-existing components as a slide. The result is a presentation that can only be
-built by people who actually built the thing it's presenting, and demos an
-order of magnitude more convincingly for it.
+## The two decks
 
-## What's in the box
+**Getting Started** is the floor: five slides, one file, no visual flourish.
+It's the whole authoring contract in something you can read top to bottom and
+copy — a full-width copy slide, the 60/40 content split, notes composed from
+Say/Context/Beat, and one genuinely live component (a ticking clock, mounted in
+a slide, doing what a screenshot can't).
+
+**Trailer — The Connected Deck Universe** is the ceiling: nineteen slides of
+hand-written CSS and SVG. No images, no video, no animation library, no assets
+of any kind — open `src/decks/connected-deck-trailer.tsx` and everything you
+just watched is in that one file. It's also the deck that explains the app,
+because Sofa Mode and Podium Mode are characters in it before they're a switch
+you flip.
+
+The gap between them is the point. Same engine, same contract, wildly different
+ceilings.
+
+## Two ways to watch — Sofa and Podium
+
+The switch on the launch page decides how a deck opens, and it's the first thing
+you see because it's the thing worth understanding:
+
+- **Sofa** (`mode="audience"`) — read to me. Voice and mute controls live in the
+  player and narrate from committed audio. There is no speaker-notes surface at
+  all — not hidden, *absent*. Nothing to escalate to on a link someone sent you.
+- **Podium** (`mode="presenter"`) — I'm presenting. The notes button appears and
+  opens a second window with your notes, a timer, and a live preview of the next
+  slide. Voice and mute leave the main window, because the presenter owns their
+  own voice and a synthesized one competing with it is just noise.
+
+Your choice persists per browser. **The URL always wins over the setting**:
+`?present=1` and `?present=0` force a mode for one viewing, so a deck link you
+share never carries *your* podium default to whoever opens it. The launch page's
+buttons pin the mode into the link deliberately for that reason.
+
+Mode is a required prop with no default — `DeckPlayer` makes every caller say
+what a window is, rather than inferring it from which props happen to be wired.
+
+## Narration: baked audio is the demo, the endpoint is the product
+
+Narration works out of the box, because the trailer's audio is **committed to
+this repo**:
 
 ```
-src/
-  deck-engine/            the reusable engine — navigation, chrome, zoom,
-                           presenter notes, fullscreen, keyboard control
-    DeckController.tsx    slide index, fullscreen state, keyboard nav,
-                           cross-window BroadcastChannel sync (also signals
-                           the notes window to close on deck exit)
-    SlideRenderer.tsx     60/40 layout: live content on the left, talking
-                           points on the right (or full-width copy-only)
-    DeckChrome.tsx        bottom nav bar: exit, prev/next, notes, fullscreen
-                           (the notes button opens the popup at the current slide)
-    ComponentFrame.tsx    wraps any real component for use inside a slide —
-                          scales it, gives it a design-grid backdrop, and
-                          adds a live zoom control you can drive mid-talk
-    PresenterNotes.tsx    a second-screen presenter view (own tab/window):
-                          notes, a timer, a live next-slide preview — the
-                          actual upcoming slide, rendered via SlideRenderer
-                          and scaled down, not just its text — and the
-                          narration controls (play-with-narration + voice picker)
-    PresenterNoteKit.tsx  Say / Context / Beat building blocks for composing
-                          a slide's notes — see "The slide-authoring
-                          contract" below
-    sayText.ts            shared Say-text extraction — the single source of
-                          truth for "what the narrator actually speaks",
-                          used by both narration and the duration estimate
-    deckDuration.ts        approximate-time estimator (read speed + dwell)
-                          and the tunable rate/dwell constants
-    DeckPickerCard.tsx    a "deck picker" card listing every registered deck,
-                          its slide count, and an approximate-length badge
-    SlidePlaceholder.tsx  a dashed-border "visual to build" stand-in — drop
-                          it into a slide's `content` while sketching a deck
-
-  decks/
-    types.ts              the entire authoring contract — a Deck is an id,
-                           a title, and a function that returns Slide[]
-    getting-started.tsx        the floor: three placeholder slides (built
-                                with SlidePlaceholder, no styling flourish)
-                                plus a thank-you — the minimal shape to copy
-    git-weather-forecast.tsx   the ceiling: git activity told as a 10-day
-                                weather forecast, CSS/SVG animation
-                                throughout, one slide rendering a real
-                                connected dashboard component
-    DemoSprintVelocity.tsx     a small "connected" dashboard component fed
-                                by synthetic sample data — stands in for
-                                the kind of live, store-backed component
-                                you'd swap in from your own app
-    ai-pickles.tsx             a second full production deck: 10 slides of
-                                original CSS/SVG illustration (no shared
-                                components with git-weather-forecast) built
-                                entirely from Say/Context/Beat notes —
-                                proof the "ceiling" scales to a new talk,
-                                not just the one example deck
-
-  PresentationDeck.tsx    orchestrator: looks up the deck by :deckId, wires
-                          up DeckController + SlideRenderer + DeckChrome
-  App.tsx, main.tsx       a minimal host app: a deck picker at `/` and the
-                          deck routes
-
-server/
-  index.js                 the one piece of backend in this repo: a small
-                           Express server exposing POST /api/narrate for
-                           narration (Azure Speech). Everything else is
-                           served statically by Vite with no server at all.
+public/voices/
+  connected-deck-trailer/
+    establishing-shot-en-US-JennyNeural.mp3
+    establishing-shot-en-US-BrianNeural.mp3
+    atom-introduction-en-US-JennyNeural.mp3
+    atom-introduction-en-US-BrianNeural.mp3
+    …                          38 files — 19 slides × 2 voices
 ```
+
+The filename **is** the contract: `<deckId>/<slideId>-<voiceId>.mp3`.
+`bakedVoices.ts` globs those files at build time, Vite fingerprints and ships
+them, and the player resolves a clip by that exact key. Nothing else — no
+manifest, no registry to update. Drop a correctly-named file in and it plays;
+that's all "baking" means.
+
+It also explains the strictness: a voice is offered **only when every slide in
+the deck has a clip in it**. Nineteen Jenny files is a voice; eighteen is not.
+
+The moment you write your own deck, or edit the words in this one, that audio is
+stale by definition. That's expected, and there's no staleness detection here on
+purpose — the answer isn't a hash manifest, it's to re-bake in your own voice.
+So the repo also ships the thing that made the audio:
+
+```bash
+cp .env.example .env          # add your Azure Speech key and region
+npm run dev:server            # the narrate server, port 5175
+npm run bake -- connected-deck-trailer
+```
+
+`npm run bake` walks every slide, computes the exact text the player would
+speak, and POSTs it to `/api/narrate`, whose write-through cache writes the mp3s
+into the layout above. Re-running is free for anything already cached — a real
+run looks like `19/19 baked (17 cached, 2 synthesized)`. It exits non-zero
+unless every slide has audio in every requested voice, so a partial bake is a
+failure you see now rather than a deck that stops talking halfway later.
+
+You can also just rehearse with the server running: the same write-through cache
+means playing a deck through bakes it.
+
+### Two narration sources — `hasApi`
+
+Where audio comes from is a **host** fact, not a deck fact, and both narration
+surfaces take the same two props:
+
+- **`hasApi: false` + `resolveNarrationUrl`** — how this app ships. Committed
+  mp3s are the only audio; `/api/narrate` is never called. When no voice covers
+  a deck, the controls render **disabled, not absent**: "this deck wasn't baked"
+  is a different claim from "this player can't narrate," and the UI should make
+  the true one.
+- **`hasApi: true`** — the author's setup, with the narrate server running.
+  Every voice stays selectable regardless of what's on disk, because a missing
+  mp3 is a cache miss rather than a gap.
+
+The same deck is therefore fully narratable in one setup and partly silent in
+another. Coverage is a property of *(deck, host)*, never of the deck alone.
 
 ## The slide-authoring contract
 
-There's no MDX pipeline, no JSON schema, no custom slide DSL. A slide is
-just React:
+No MDX pipeline, no JSON schema, no slide DSL. A slide is React:
 
 ```ts
 export interface Slide {
   id: string;
-  title?: string;          // plain-text anchor shown full-sized in the
-                           // presenter-notes window, and read aloud first by
-                           // narration (before the Say lines) — should match
-                           // the visible title inside `copy`
-  copy: ReactNode;         // talking points / title panel
-  content?: ReactNode;     // the live visual — omit for a full-width copy slide
-  notes?: ReactNode;       // shown in the presenter-notes window
-  approximateTime?: string; // optional "mm:ss" override for the deck-picker's
-                           // length badge; omit to let it be computed from
-                           // the Say text (see "deck-engine/deckDuration.ts")
+  title?: string;           // plain-text anchor for the presenter window;
+                            // also the first thing narration speaks
+  copy: ReactNode;          // talking points / title panel
+  content?: ReactNode;      // the live visual — omit for a full-width copy slide
+  notes?: ReactNode;        // shown in the presenter-notes window
+  approximateTime?: string; // optional "mm:ss" override for the length badge
 }
 
 export interface Deck {
   id: string;
   title: string;
-  createSlides: () => Slide[];
+  summary: string;          // spoiler-free: what it's about, not how it ends
+  state?: DeckState;        // Draft | InProgress | Prod | Archive
+  tags?: string[];
+  slides: () => Slide[];
 }
 ```
 
-`notes` still accepts a plain markdown string (rendered as before, for older
-decks), but new decks should compose it from `Say` / `Context` / `Beat` in
-`deck-engine/PresenterNoteKit.tsx` instead of one undifferentiated blob:
+### Notes: Say, Context, Beat
+
+`notes` accepts a plain markdown string, but compose it from the note kit
+instead:
 
 ```tsx
 notes: (
   <>
-    <Say>This chart is pulling live from the same store the app uses.</Say>
-    <Context>Slow down here — this is the "aha" moment for most audiences.</Context>
+    <Say>This chart pulls from the same store the app uses.</Say>
+    <Context>Slow down here — this is the aha moment for most rooms.</Context>
     <Beat>advance on click</Beat>
   </>
 ),
 ```
 
-`Say` renders verbatim talking points, `Context` is background/tone the
-presenter shouldn't read aloud, and `Beat` is a pacing/delivery cue — each
-gets distinct styling on the presenter screen, with `NoteLegend` available to
-key the colors for anyone new to the format.
+`Say` is what you read aloud, `Context` is background you keep to yourself, and
+`Beat` is a delivery cue. Each is styled distinctly on the presenter screen —
+but this split isn't cosmetic: **narration speaks only `Say`**. Keeping stage
+directions out of `Say` is a contract, not a preference, and the deck-length
+estimate measures the same text.
 
-Because slides are plain components, "connecting" one to something real is
-just... importing it:
+### `makeSlide` — write the title once
+
+A slide's `title` must match the title rendered inside `copy`, and writing both
+by hand invites drift. Hand `createMakeSlide` your deck's four copy components
+once, then write each title exactly once:
+
+```tsx
+const makeSlide = createMakeSlide({ CopyPanel, Eyebrow, SlideTitle, Lead });
+
+makeSlide({
+  id: "live-component",
+  title: "Connected Means Running",   // → Slide.title AND <SlideTitle>
+  eyebrow: <>Slide 3 · ComponentFrame</>,
+  lead: <>The clock on the left is a component with its own state.</>,
+  content: <ComponentFrame><LiveClock /></ComponentFrame>,
+  notes: <>…</>,
+});
+```
+
+`copyAfter` appends extra copy below the lead; a bespoke `copy:` replaces the
+standard stack entirely for a slide with a custom title treatment. `title` stays
+required either way, so the presenter window never loses its anchor.
+
+### Connecting a slide to something real
+
+Import the component. That's the whole API:
 
 ```tsx
 function StormSlide() {
@@ -158,128 +203,102 @@ function StormSlide() {
 }
 ```
 
-`ComponentFrame` is the only piece of engine ceremony involved — it scales the
-embedded component to fit the slide's design grid and gives you a live zoom
-control so you can pull back or push in on it while you talk.
-
-## Running it
-
-```bash
-npm install
-npm run dev
-```
-
-`npm run dev` starts the Vite dev server *and* the narrate server together
-(via `concurrently` — see "Presenter mode & narration" below), on ports 5174
-and 5175 respectively. The narrate server is only needed for that one
-feature, so it's fine if you never touch it or its port. `npm run dev:client`
-/ `npm run dev:server` start either one alone if you ever need to. Everything
-narration-related is optional — if you want it, copy `.env.example` to
-`.env` and fill in your Azure Speech key first (see "Presenter mode &
-narration"); if not, skip it entirely and the rest of the app is unaffected.
-
-Open the printed local URL, and use the deck picker to jump into **Getting
-Started** (the bare-bones tour), **Git as a 10-Day Forecast**, or
-**Everything I Know About AI Dev I Learned from Pickles** (the two full
-production decks). Controls:
-
-- `→` / `Space` — next slide, `←` — previous slide
-- `F` — toggle fullscreen
-- `Esc` — exit the deck (also closes the notes window if it's open)
-- speaker icon in the bottom bar — opens presenter notes in a second window
-  (scoped to the slide you're currently on), which can also drive the main
-  deck's slide position
+`ComponentFrame` is the only engine ceremony involved — it scales the component
+to the slide's design grid and gives you a live zoom control to drive mid-talk.
+Feed the component whatever data source it normally uses; the engine only ever
+sees a `ReactNode`. If you want a slide to stay stable across a live demo, pass
+it a frozen snapshot instead of a live query.
 
 ## Bringing your own decks
 
-1. Add a new file under `src/decks/`, export a `Deck` from it (see
-   `types.ts` and `getting-started.tsx` for the minimal shape, or
-   `git-weather-forecast.tsx` for a fully realized example).
+1. Add a file under `src/decks/`, export a `Deck` from it.
 2. Register it in `src/decks/index.ts`.
-3. That's it — no routing changes, no build config. The route
-   `/deck/<your-deck-id>` exists as soon as the deck is registered.
+3. That's it. `/deck/<your-deck-id>` exists as soon as it's registered — no
+   routing changes, no build config.
 
-To embed something from your own app: import the real component, wrap it in
-`ComponentFrame`, and feed it whatever data source it normally uses (your
-Redux store, an RTK Query hook, a REST call — the engine doesn't care).
-If you want a slide to stay stable across a live demo (so it doesn't drift as
-your data changes underneath you), do what `DemoSprintVelocity` does here:
-pass the component a frozen snapshot instead of a live query.
+## What's in the box
 
-## Presenter mode & narration
+```
+src/
+  deck-engine/            the reusable engine
+    DeckPlayer.tsx        the player: mode, slides, chrome, narration wiring
+    DeckController.tsx    slide index, fullscreen, keyboard, cross-window sync
+    SlideRenderer.tsx     60/40 layout (or full-width when there's no content)
+    DeckChrome.tsx        bottom bar: exit, prev/next, voice, notes, fullscreen
+    ComponentFrame.tsx    wraps a real component: design grid + live zoom
+    PresenterNotes.tsx    the second-screen window: notes, timer, next-slide
+                          preview, narration controls
+    PresenterNoteKit.tsx  Say / Context / Beat
+    makeSlide.tsx         the slide factory (write the title once)
+    SlidePlaceholder.tsx  dashed "visual to build" stand-in for sketching
+    sayText.ts            what the narrator speaks — one source of truth
+    deckDuration.ts       the m:ss estimate on the launch page
+    voiceCoverage.ts      which voices can narrate a deck, and why
+    useVoiceControls.ts   coverage + selection, bound together on purpose
+    useSlideNarration.ts  audience-side playback of baked audio
+    narrationConstants.ts the voice roster and the exact "not baked" wording
+  decks/
+    types.ts              the entire authoring contract
+    index.ts              the registry
+    getting-started.tsx   the floor
+    connected-deck-trailer.tsx  the ceiling
+    cat-dev.tsx           a character the trailer casts, and a worked example
+                          of the only dependency a slide really has
+  LaunchPage.tsx          deck list + the Sofa/Podium switch
+  PresentationDeck.tsx    /deck/:deckId — resolves mode, mounts DeckPlayer
+  presenterMode.tsx       the persisted Sofa/Podium setting
+  bakedVoices.ts          the committed-mp3 registry
 
-The presenter-notes window (opened from the speaker icon in the bottom bar)
-is the presenter's private surface: notes, a timer, a live next-slide
-preview — and narration.
+public/voices/            committed narration audio (see above)
+scripts/bake-voices.ts    npm run bake
+server/index.js           POST /api/narrate — the author path, optional
+```
 
-- **Play with narration.** A toggle in the notes header reads the current
-  slide's `Say` text aloud (its `title` first, then the `Say` lines). It's a
-  *mode*, not a one-shot: it stays on across slide changes, cutting the old
-  audio and reading the new slide as you navigate. `Context` and `Beat` are
-  never spoken — only `Say`.
-- **Voice picker.** A small dropdown next to the toggle chooses the voice
-  (currently **Jenny** / **Brian**). The choice persists in `localStorage`, so
-  a preference sticks across reloads and decks. Switching voice mid-slide
-  re-narrates the current slide in the new voice.
-- **How it works.** This is the one feature in the repo that needs a
-  backend. The notes window POSTs the `Say` text to `POST /api/narrate`, a
-  small Express server (`server/index.js`) that calls Azure Speech neural
-  TTS and returns mp3 audio. It requires `AZURE_SPEECH_KEY` /
-  `AZURE_SPEECH_REGION` — copy `.env.example` to `.env` and fill them in
-  (get a key from an Azure Speech resource in the portal, under "Keys and
-  Endpoint"), then `npm run dev` as usual — it starts both the Vite dev
-  server and the narrate server. Without a `.env`, everything else in the
-  app works exactly the same.
-- **On/off is a single switch, deliberately.** The narration toggle and
-  voice picker disable themselves (with an explanatory tooltip) whenever
-  `AZURE_SPEECH_KEY` / `AZURE_SPEECH_REGION` aren't set — checked once via
-  `GET /api/narrate/status`. That check only looks at whether the key is
-  configured, **not** whether a given slide already has cached audio on
-  disk. So even a slide with a committed, ready-to-play mp3 stays behind the
-  same on/off switch as one that's never been synthesized — a deliberate
-  simplification (one predictable gate, not a per-slide cache check) over
-  precision (letting already-cached slides play with no key at all). If you
-  commit narration audio for a deck so it plays for people who never set up
-  a key, know that this gate currently blocks that path — the toggle stays
-  disabled for them regardless of what's on disk.
-- **Caching.** Audio is written through to
-  `public/voices/{deck}/{slide}-{voice}.mp3`, keyed by `(deck, slide,
-  voice)`. Repeat plays — same slide, same voice — are a disk hit with no
-  Azure call, and each voice caches independently. These files are
-  gitignored by default (regenerate on demand); commit them yourself if you
-  want the audio itself preserved (e.g. for a static deploy, or so a
-  contributor with a key doesn't have to re-bake a deck from scratch) —
-  just note the point above about the toggle still requiring a key to reach
-  them through the UI.
+Routes: `/` is the launch page, `/deck/:deckId` the player, `/deck/:deckId/notes`
+the presenter popout.
 
-The deck surface (`SlideRenderer` — the content/copy split the room sees)
-stays untouched by any of this; narration lives entirely in the notes popup.
+## Tests
+
+```bash
+npm test
+```
+
+Deliberately narrow: the suite pins the rules that are invisible when broken —
+mode ownership (presenter never grows voice controls, audience never grows a
+notes surface), which narration source each host reads from, the voice-coverage
+rules, and the player's neutral default theme. Those are the invariants a
+refactor regresses silently, so they're the ones worth a headless assertion.
 
 ## Design notes
 
-- **Dark by default.** The engine assumes a dark, high-contrast presentation
-  theme (Fluent UI's dark theme, restyled). Swap `src/theme.ts` for your own
-  brand.
-- **60/40 layout, but optional.** Slides with no `content` render as
-  full-width copy — useful for a title card or a closing slide.
+- **Dark by default, and host-neutral.** The player runs Fluent's stock
+  `webDarkTheme`, deliberately unbranded, so no app's palette follows a deck in.
+  `DeckPlayer` takes a `theme` prop as an escape hatch. Slides carry their own
+  palettes as literals; no theme reaches into deck art.
+- **60/40, but optional.** A slide with no `content` renders full-width —
+  useful for a title card or a closer.
 - **The engine doesn't know about your data layer.** `ComponentFrame` and
-  `SlideRenderer` only deal in `ReactNode`. Whatever a slide's `content`
-  renders — a chart, a live API call, a whole page from your app — is
-  entirely up to the slide, not the engine.
-- **Next-slide preview renders at a 1920×1080 internal canvas**, scaled down
-  to card size (`PresenterNotes.tsx`'s `CARD_SLIDE_W`/`CARD_SLIDE_H`), not the
-  card's actual on-screen pixel size. Slide content authored assuming a wide
-  Stage can otherwise clip at the edge of a smaller virtual canvas — same
-  16:9 ratio, just more internal pixel budget for the real slide to lay out
-  in before it gets scaled down.
+  `SlideRenderer` deal only in `ReactNode`.
+- **The next-slide preview renders at a 1920×1080 internal canvas** and scales
+  down, so slide content authored for a wide stage doesn't clip in the preview.
+
+## Where this came from
+
+The engine was extracted from a larger private toolkit, where it drives a
+library of decks across two host apps. Extraction means the two copies are kept
+in sync by periodic re-baseline, not by a shared package — so if you're
+comparing them, expect the engine files to match and the surrounding app not to.
+
+One deliberate difference worth naming: upstream, `Deck.slides` takes an
+active-organization slug, for decks that render org-scoped sample data. That's a
+host concept with no meaning in a standalone repo, so here `slides()` takes no
+arguments. It's not an oversight, and it shouldn't be "fixed" back.
 
 ## Stack
 
-React 18, TypeScript, Vite, Fluent UI v9 (`@fluentui/react-components`),
-React Router, Recharts, react-markdown. No backend is required to *view* a
-deck — `DemoSprintVelocity` uses synthetic, hard-coded data. Narration is the
-one feature that calls a backend (a small Express server, `server/index.js`
-→ Azure Speech); everything else runs client-side.
+React 18, TypeScript, Vite, Fluent UI v9, React Router. No backend is needed to
+view a deck or hear it narrated. The one optional server is `server/index.js`
+(Express → Azure Speech), and only for baking your own audio.
 
 ## License
 

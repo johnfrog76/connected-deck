@@ -1,31 +1,26 @@
-import { Routes, Route, useLocation } from "react-router-dom";
-import { FluentProvider, Title1, Body1, tokens } from "@fluentui/react-components";
+import { Routes, Route, useLocation, useParams } from "react-router-dom";
+import { FluentProvider } from "@fluentui/react-components";
 import { darkTheme } from "./theme";
-import { PresentationDeck, DeckPickerCard } from "./PresentationDeck";
+import { LaunchPage } from "./LaunchPage";
+import { PresentationDeck } from "./PresentationDeck";
 import { PresenterNotes } from "./deck-engine/PresenterNotes";
+import { PresenterModeProvider } from "./presenterMode";
+import { BAKED_VOICES, voiceUrl, type VoiceId } from "./bakedVoices";
 
-function Home() {
+// The notes popout is a SEPARATE WINDOW with its own React tree, opened by URL
+// — so it can't inherit anything from the deck window and must be handed the
+// same narration facts independently. Getting these two out of sync is how a
+// player and its notes window end up disagreeing about which voices exist.
+function NotesWindow() {
+  const { deckId } = useParams<{ deckId: string }>();
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        backgroundColor: tokens.colorNeutralBackground1,
-        padding: "48px 24px",
-        display: "flex",
-        justifyContent: "center",
-      }}
-    >
-      <div style={{ width: "100%", maxWidth: "720px", display: "flex", flexDirection: "column", gap: "20px" }}>
-        <div>
-          <Title1>Connected Deck</Title1>
-          <Body1 style={{ display: "block", marginTop: "8px", color: tokens.colorNeutralForeground2 }}>
-            A presentation engine that renders live, connected React components inside your slides —
-            not static screenshots. Pick a deck below to present it.
-          </Body1>
-        </div>
-        <DeckPickerCard />
-      </div>
-    </div>
+    <PresenterNotes
+      voices={BAKED_VOICES}
+      hasApi={false}
+      resolveNarrationUrl={(slide, voice) =>
+        voiceUrl(deckId, slide.id, voice as VoiceId)
+      }
+    />
   );
 }
 
@@ -35,13 +30,15 @@ export default function App() {
 
   return (
     <FluentProvider theme={darkTheme} style={{ colorScheme: "dark", minHeight: "100vh" }}>
-      <div style={isDeck ? undefined : { minHeight: "100vh" }}>
-        <Routes>
-          <Route path="/deck/:deckId/notes" element={<PresenterNotes />} />
-          <Route path="/deck/:deckId" element={<PresentationDeck />} />
-          <Route path="/" element={<Home />} />
-        </Routes>
-      </div>
+      <PresenterModeProvider>
+        <div style={isDeck ? undefined : { minHeight: "100vh" }}>
+          <Routes>
+            <Route path="/deck/:deckId/notes" element={<NotesWindow />} />
+            <Route path="/deck/:deckId" element={<PresentationDeck />} />
+            <Route path="/" element={<LaunchPage />} />
+          </Routes>
+        </div>
+      </PresenterModeProvider>
     </FluentProvider>
   );
 }

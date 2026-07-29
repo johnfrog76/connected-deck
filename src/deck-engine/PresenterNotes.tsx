@@ -1,6 +1,13 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
-import { FluentProvider, tokens, Button, Dropdown, Option } from "@fluentui/react-components";
+import {
+  FluentProvider,
+  tokens,
+  Button,
+  Dropdown,
+  Option,
+  webDarkTheme,
+} from "@fluentui/react-components";
 import {
   Play20Filled,
   Pause20Filled,
@@ -10,30 +17,30 @@ import {
   Speaker220Filled,
   SpeakerMute20Regular,
 } from "@fluentui/react-icons";
-import { darkTheme } from "../theme";
 import { DECKS } from "../decks/index";
+import type { Slide } from "../decks/types";
 import { MarkdownViewer } from "../shared/MarkdownViewer";
 import { ZoomControl } from "../shared/ZoomControl";
 import { NoteLegend } from "./PresenterNoteKit";
 import { SlideRenderer } from "./SlideRenderer";
-import { slideSpokenText } from "./sayText";
+import { extractSayText } from "./sayText";
+import { useVoiceControls } from "./useVoiceControls";
+import {
+  NARRATION_VOICES,
+  DEFAULT_VOICE_ID,
+  VOICE_STORAGE_KEY,
+  NO_NARRATION_TITLE,
+  VOICE_PICKER_TITLE,
+  voiceOptionLabel,
+  type NarrationVoice,
+} from "./narrationConstants";
 
 const DECK_BG = "#07080f";
 const BORDER = "#1e2030";
 
-// Narration voice shortlist. `id` is the Azure neural voice sent to
-// /api/narrate; `name` is the short label shown in the picker. Must stay a
-// subset of server/index.js's ALLOWED_VOICES.
-const NARRATION_VOICES = [
-  { id: "en-US-JennyNeural", name: "Jenny" },
-  { id: "en-US-BrianNeural", name: "Brian" },
-] as const;
-const DEFAULT_VOICE_ID = "en-US-JennyNeural";
-const VOICE_STORAGE_KEY = "connected-deck-narration-voice";
-
 // Persisted voice preference: a presenter who picks Brian keeps Brian across
-// reloads and decks. Falls back to the default only when nothing valid is
-// stored (first run, or a stored voice that's since been removed).
+// reloads and decks. Falls back to the endpoint default only when nothing valid
+// is stored (first run, or a stored voice that's since been removed).
 function loadStoredVoice(): string {
   try {
     const stored = localStorage.getItem(VOICE_STORAGE_KEY);
@@ -135,11 +142,43 @@ function PresenterTimer() {
   );
 }
 
-export function PresenterNotes() {
+export function PresenterNotes({
+  voices = NARRATION_VOICES,
+  hasApi = true,
+  resolveNarrationUrl,
+}: {
+  /**
+   * Selectable voices. Defaults to the full shortlist; pass a narrower list to
+   * offer fewer.
+   */
+  voices?: readonly NarrationVoice[];
+  /**
+   * Whether /api/narrate is reachable — i.e. whether the narrate server is
+   * running with an Azure Speech key.
+   *
+   * Defaults TRUE, which suits an author working with the server up: every
+   * toggle synthesizes live and the write-through cache bakes as they rehearse.
+   * This app passes FALSE plus a resolver (see App.tsx), so narration plays the
+   * committed mp3s and the picker is gated by what was actually baked. Getting
+   * this wrong is not subtle-but-harmless: a `true` with no server behind it
+   * makes every toggle a doomed fetch.
+   */
+  hasApi?: boolean;
+  /**
+   * Resolve a slide's pre-baked clip URL, or null when it wasn't baked.
+   * Required when hasApi is false.
+   */
+  resolveNarrationUrl?: (slide: Slide, voiceId: string) => string | null;
+} = {}) {
   const { deckId } = useParams<{ deckId: string }>();
+  // Static = no synthesizer to fall back on, so baked files are the only audio.
+  const isStatic = !hasApi;
 
+  // This popout looks the deck up itself rather than being handed slides —
+  // it's a separate window with its own React tree, reached by URL, so the
+  // deck id in the route is the only thing the two windows share.
   const deck = DECKS.find((d) => d.id === deckId);
-  const slides = useMemo(() => deck?.createSlides() ?? [], [deck]);
+  const slides = useMemo(() => deck?.slides() ?? [], [deck]);
 
   // Opened-at slide is handed over via ?slide=N (DeckChrome), so opening notes
   // late follows the deck instead of cold-starting at slide 1. Falls back to 0
@@ -157,46 +196,46 @@ export function PresenterNotes() {
   const [notesZoom, setNotesZoom] = useState(1.25);
   const channelRef = useRef<BroadcastChannel | null>(null);
 
-  // Narration playback (see README.md's "Presenter mode & narration"). "On"
-  // is a mode, not a one-shot play: while on, every slide arrival auto-fetches
-  // and plays that slide's Say text. Nav is never blocked — clicking next
-  // mid-sentence just cuts the old audio and starts the new slide's.
+  // Read the remembered voice once per mount and hand it to useVoiceControls as a
+  // preference — it's honored only if that voice can actually narrate this deck,
+  // so a stored "Brian" on a Jenny-only deck no longer selects a silent voice.
+  const [storedVoice] = useState(loadStoredVoice);
+
+  // Narration playback. "On" is a MODE, not a one-shot play: while on, every
+  // slide arrival (from either window) auto-fetches and plays that slide's Say
+  // text. Nav is never blocked — clicking next mid-sentence just cuts the old
+  // audio and starts the new slide's, same as toggling off does.
   const [narrationOn, setNarrationOn] = useState(false);
   const [narrating, setNarrating] = useState(false); // true while audio is actually playing
-  const [voice, setVoice] = useState<string>(loadStoredVoice);
-  const voiceName = NARRATION_VOICES.find((v) => v.id === voice)?.name ?? "Jenny";
 
-  // Gates the narration controls themselves — null while unchecked (disabled,
-  // same as false, so there's no flash of enabled-then-disabled), false once
-  // either the key isn't configured or a real request has failed. There's no
-  // point offering a toggle/voice picker that's guaranteed to silently do
-  // nothing on click.
-  const [narrationAvailable, setNarrationAvailable] = useState<boolean | null>(null);
+  // The SAME hook the audience player's chrome uses, so the two windows can't
+  // disagree about which voices are offered. With hasApi it enables every
+  // voice; without, only the fully-baked ones.
+  const {
+    voices: surveyedVoices,
+    voiceId: voice,
+    setVoiceId,
+    hasAnyNarration,
+  } = useVoiceControls({
+    slides,
+    voices,
+    hasApi,
+    resolveUrl: resolveNarrationUrl,
+    preferredVoiceId: storedVoice,
+  });
+  const voiceName = surveyedVoices.find((v) => v.id === voice)?.name ?? "";
 
-  useEffect(() => {
-    let cancelled = false;
-    fetch("/api/narrate/status")
-      .then((res) => (res.ok ? res.json() : Promise.reject(new Error(`status ${res.status}`))))
-      .then((data: { configured?: boolean }) => {
-        if (!cancelled) setNarrationAvailable(Boolean(data?.configured));
-      })
-      .catch(() => {
-        if (!cancelled) setNarrationAvailable(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  const handleVoiceChange = useCallback((next: string) => {
-    setVoice(next);
-    try {
-      localStorage.setItem(VOICE_STORAGE_KEY, next);
-    } catch {
-      // Preference just won't persist if storage is unavailable — not fatal.
-    }
-  }, []);
-
+  const handleVoiceChange = useCallback(
+    (next: string) => {
+      setVoiceId(next);
+      try {
+        localStorage.setItem(VOICE_STORAGE_KEY, next);
+      } catch {
+        // Preference just won't persist if storage is unavailable — not fatal.
+      }
+    },
+    [setVoiceId],
+  );
   const audioRef = useRef<HTMLAudioElement | null>(null);
   // Guards against the overlapping-playback race: paging quickly stacks up one
   // /api/narrate request per slide visited, and without cancellation their
@@ -217,60 +256,65 @@ export function PresenterNotes() {
     setNarrating(false);
   }, []);
 
-  const playNarration = useCallback(
-    async (text: string, slideId: string | undefined, voiceId: string) => {
-      stopAudio(); // cancel any in-flight request and stop current audio first
-      if (!text) return;
-      const controller = new AbortController();
-      abortRef.current = controller;
-      const seq = requestSeqRef.current;
-      setNarrating(true);
-      try {
-        const res = await fetch("/api/narrate", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          // deck + slide + voice let the server cache this audio as a
-          // committed asset keyed by (deck, slide, voice) — repeat plays
-          // become a disk hit, and each voice caches independently.
-          body: JSON.stringify({ text, deck: deckId, slide: slideId, voice: voiceId }),
-          signal: controller.signal,
-        });
-        if (!res.ok) throw new Error(`narrate failed: ${res.status}`);
-        const blob = await res.blob();
-        // A newer request (slide change or toggle-off) superseded this one
-        // while it was in flight — drop the stale response instead of
-        // playing audio for a slide we've already left.
-        if (seq !== requestSeqRef.current) return;
-        const url = URL.createObjectURL(blob);
-        const audio = new Audio(url);
-        audioRef.current = audio;
-        audio.onended = () => {
-          URL.revokeObjectURL(url);
-          setNarrating(false);
-        };
-        audio.onerror = () => {
-          URL.revokeObjectURL(url);
-          setNarrating(false);
-        };
-        await audio.play();
-      } catch (err) {
-        // AbortError (superseded request) is expected — only react if this is
-        // still the current request, so an aborted stale one doesn't stomp
-        // the newer request's state.
-        if (seq !== requestSeqRef.current) return;
-        setNarrating(false);
-        const aborted = err instanceof DOMException && err.name === "AbortError";
-        if (!aborted) {
-          // A real failure (server unreachable, key removed mid-session,
-          // Azure error) — stop offering a toggle that's guaranteed to fail
-          // again on the next click.
-          setNarrationAvailable(false);
-          setNarrationOn(false);
-        }
-      }
+  // Static hosts play a committed file: there's no request to make, so none of
+  // the abort/sequence machinery below applies — just retarget the element.
+  const playBaked = useCallback(
+    (url: string | null) => {
+      stopAudio();
+      if (!url) return; // nothing baked for this slide+voice — stay silent
+      const audio = new Audio(url);
+      audioRef.current = audio;
+      audio.onplay = () => setNarrating(true);
+      audio.onpause = () => setNarrating(false);
+      audio.onended = () => setNarrating(false);
+      audio.onerror = () => setNarrating(false);
+      audio.play().catch(() => setNarrating(false));
     },
-    [stopAudio, deckId],
+    [stopAudio],
   );
+
+  const playNarration = useCallback(async (text: string, slideId: string | undefined, voiceId: string) => {
+    stopAudio(); // cancel any in-flight request and stop current audio first
+    if (!text) return;
+    const controller = new AbortController();
+    abortRef.current = controller;
+    const seq = requestSeqRef.current;
+    setNarrating(true);
+    try {
+      const res = await fetch("/api/narrate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        // deck + slide + voice let the backend cache this audio as a committed
+        // asset keyed by (deck, slide, voice) — repeat plays become a disk hit,
+        // and each voice caches independently.
+        body: JSON.stringify({ text, deck: deckId, slide: slideId, voice: voiceId }),
+        signal: controller.signal,
+      });
+      if (!res.ok) throw new Error(`narrate failed: ${res.status}`);
+      const blob = await res.blob();
+      // A newer request (slide change or toggle-off) superseded this one while
+      // it was in flight — drop the stale response instead of playing audio for
+      // a slide we've already left.
+      if (seq !== requestSeqRef.current) return;
+      const url = URL.createObjectURL(blob);
+      const audio = new Audio(url);
+      audioRef.current = audio;
+      audio.onended = () => {
+        URL.revokeObjectURL(url);
+        setNarrating(false);
+      };
+      audio.onerror = () => {
+        URL.revokeObjectURL(url);
+        setNarrating(false);
+      };
+      await audio.play();
+    } catch {
+      // AbortError (superseded request) is expected — only clear the playing
+      // state if this is still the current request, so an aborted stale one
+      // doesn't stomp the newer request's state.
+      if (seq === requestSeqRef.current) setNarrating(false);
+    }
+  }, [stopAudio, deckId]);
 
   useEffect(() => stopAudio, [stopAudio]);
 
@@ -313,9 +357,14 @@ export function PresenterNotes() {
   const goPrev = useCallback(() => goto(Math.max(0, index - 1)), [goto, index]);
   const goNext = useCallback(() => goto(Math.min(total - 1, index + 1)), [goto, index, total]);
 
-  // Title read first, then the Say lines — Context/Beat stay presenter-only,
-  // never spoken.
-  const sayText = useMemo(() => slideSpokenText(currentSlide ?? {}), [currentSlide]);
+  // Title read first, then the Say lines. Beat stays presenter-only — it's a
+  // stage direction, not audience-facing content; reading it aloud would sound
+  // like the narrator talking to itself about pacing.
+  const sayText = useMemo(() => {
+    const body = currentSlide?.notes ? extractSayText(currentSlide.notes) : "";
+    const title = typeof currentSlide?.title === "string" ? currentSlide.title.trim() : "";
+    return [title, body].filter(Boolean).join(". ");
+  }, [currentSlide]);
 
   const toggleNarration = useCallback(() => {
     setNarrationOn((on) => !on);
@@ -326,18 +375,31 @@ export function PresenterNotes() {
   // slide to the next" behavior) — same effect handles both since both are
   // just "narrationOn or index changed, sync audio to match."
   useEffect(() => {
-    if (narrationOn) {
-      playNarration(sayText, currentSlide?.id, voice);
-    } else {
+    if (!narrationOn) {
       stopAudio();
+      return;
+    }
+    if (isStatic) {
+      // Backend-free: play the committed clip for this slide+voice. No fetch —
+      // the whole reason this branch exists is that /api/narrate isn't there.
+      playBaked(
+        currentSlide && resolveNarrationUrl
+          ? resolveNarrationUrl(currentSlide, voice)
+          : null,
+      );
+    } else {
+      playNarration(sayText, currentSlide?.id, voice);
     }
     // Re-runs on slide change and on voice change — switching voice mid-slide
     // cuts the current audio and re-narrates the same slide in the new voice.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [narrationOn, index, voice]);
+  }, [narrationOn, index, voice, isStatic]);
 
+  // Plain webDarkTheme, same as DeckPlayer's default: the notes popout is part
+  // of the one shared player application, so its chrome stays neutral — no
+  // host brand follows a deck in.
   return (
-    <FluentProvider theme={darkTheme} style={{ colorScheme: "dark" }}>
+    <FluentProvider theme={webDarkTheme} style={{ colorScheme: "dark" }}>
       <div
         style={{
           position: "fixed",
@@ -385,18 +447,23 @@ export function PresenterNotes() {
           {/* Voice controls group — narration toggle + voice picker, centered
               between the slide nav and the timer. */}
           <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+            {/* Play with narration — a mode, not a one-shot: stays on across
+                slide changes until toggled off. */}
             <Button
               appearance={narrationOn ? "primary" : "subtle"}
               size="small"
-              disabled={narrationAvailable !== true}
+              // No voice covers this deck on this host ⇒ nothing to play, so the
+              // toggle is dead rather than starting a doomed fetch or a silent
+              // one. Disabled, never absent: "not baked" is a real state.
+              disabled={!hasAnyNarration}
               icon={narrating ? <SpeakerMute20Regular /> : <Speaker220Filled />}
               onClick={toggleNarration}
               title={
-                narrationAvailable === true
-                  ? narrationOn
+                !hasAnyNarration
+                  ? NO_NARRATION_TITLE
+                  : narrationOn
                     ? "Stop narration"
                     : "Play with narration"
-                  : "Narration unavailable — set AZURE_SPEECH_KEY / AZURE_SPEECH_REGION in .env and restart npm run dev (see .env.example)"
               }
             />
             {/* Voice picker — sits next to the narration control. Value shows
@@ -404,22 +471,26 @@ export function PresenterNotes() {
                 localStorage (loadStoredVoice). */}
             <Dropdown
               size="small"
-              disabled={narrationAvailable !== true}
+              // Every option would be disabled — a dropdown that still opens on
+              // a menu of unpickable voices is worse than one that plainly can't
+              // be opened. Mirrors DeckChrome's voice group exactly.
+              disabled={!hasAnyNarration}
               value={voiceName}
               selectedOptions={[voice]}
               onOptionSelect={(_, data) => {
                 if (data.optionValue) handleVoiceChange(data.optionValue);
               }}
               style={{ minWidth: "84px" }}
-              title={
-                narrationAvailable === true
-                  ? "Narration voice"
-                  : "Narration unavailable — set AZURE_SPEECH_KEY / AZURE_SPEECH_REGION in .env and restart npm run dev"
-              }
+              title={hasAnyNarration ? VOICE_PICKER_TITLE : NO_NARRATION_TITLE}
             >
-              {NARRATION_VOICES.map((v) => (
-                <Option key={v.id} value={v.id} text={v.name}>
-                  {v.name}
+              {surveyedVoices.map((v) => (
+                <Option
+                  key={v.id}
+                  value={v.id}
+                  text={v.name}
+                  disabled={!v.available}
+                >
+                  {voiceOptionLabel(v.name, v.available)}
                 </Option>
               ))}
             </Dropdown>

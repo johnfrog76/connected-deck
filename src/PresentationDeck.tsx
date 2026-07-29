@@ -1,51 +1,37 @@
 import { useMemo } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { FluentProvider, Button } from "@fluentui/react-components";
-import { darkTheme } from "./theme";
+import { useParams, useSearchParams } from "react-router-dom";
 import { DECKS } from "./decks/index";
-import { useDeckController } from "./deck-engine/DeckController";
-import { SlideRenderer, DECK_BG } from "./deck-engine/SlideRenderer";
-import { DeckChrome } from "./deck-engine/DeckChrome";
+import { DeckPlayer } from "./deck-engine/DeckPlayer";
+import { BAKED_VOICES, voiceUrl, type VoiceId } from "./bakedVoices";
+import { usePresenterMode } from "./presenterMode";
 
-export { DeckPickerCard, DeckPicker } from "./deck-engine/DeckPickerCard";
-
+// Resolves the two host facts DeckPlayer refuses to infer — which mode this
+// window is, and where its audio comes from — and hands them over as props.
+//
+// The URL beats the saved setting on purpose: a deck link you send someone must
+// never carry YOUR podium default to them. The switch sets your default; the
+// link carries the mode you meant to share.
 export function PresentationDeck() {
   const { deckId } = useParams<{ deckId: string }>();
-  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const { presenter } = usePresenterMode();
+
+  const presentParam = searchParams.get("present");
+  const isPresenter = presentParam === null ? presenter : presentParam === "1";
 
   const deck = DECKS.find((d) => d.id === deckId);
-  const slides = useMemo(() => deck?.createSlides() ?? [], [deck]);
-
-  const { slideIndex, isFullscreen, goNext, goPrev, toggleFullscreen, exitDeck } =
-    useDeckController(slides, deckId);
-
-  if (!deck) {
-    return (
-      <FluentProvider theme={darkTheme} style={{ colorScheme: "dark" }}>
-        <div
-          style={{
-            position: "fixed", inset: 0, zIndex: 9999, backgroundColor: DECK_BG,
-            display: "flex", flexDirection: "column", alignItems: "center",
-            justifyContent: "center", gap: "16px", color: "#fff",
-          }}
-        >
-          <p style={{ fontSize: "1.4rem", margin: 0 }}>Deck &ldquo;{deckId}&rdquo; not found</p>
-          <Button onClick={() => navigate(-1)}>← Back</Button>
-        </div>
-      </FluentProvider>
-    );
-  }
+  const slides = useMemo(() => deck?.slides() ?? [], [deck]);
 
   return (
-    <FluentProvider theme={darkTheme} style={{ colorScheme: "dark", height: "100%", display: "contents" }}>
-      <div style={{ position: "fixed", inset: 0, zIndex: 9999, backgroundColor: DECK_BG, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-        <SlideRenderer slide={slides[slideIndex]} slideIndex={slideIndex} isFullscreen={isFullscreen} />
-        <DeckChrome
-          slideIndex={slideIndex} slides={slides} deckId={deckId ?? ""}
-          isFullscreen={isFullscreen} goNext={goNext} goPrev={goPrev}
-          toggleFullscreen={toggleFullscreen} onExit={exitDeck}
-        />
-      </div>
-    </FluentProvider>
+    <DeckPlayer
+      deckId={deckId}
+      slides={slides}
+      mode={isPresenter ? "presenter" : "audience"}
+      voices={BAKED_VOICES}
+      hasApi={false}
+      resolveNarrationUrl={(slide, voice) =>
+        voiceUrl(deckId, slide.id, voice as VoiceId)
+      }
+    />
   );
 }

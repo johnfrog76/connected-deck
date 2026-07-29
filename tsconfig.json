@@ -18,7 +18,12 @@
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+
+    // Jest globals (describe/it/expect) for the *.test.tsx host-contract suite.
+    // Listing "types" at all opts out of auto-including every @types package,
+    // so node's globals come along explicitly rather than by accident.
+    "types": ["jest", "node", "vite/client"]
   },
   "include": ["src"],
   "references": [{ "path": "./tsconfig.node.json" }]

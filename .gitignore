@@ -4,7 +4,7 @@ dist/
 .DS_Store
 .env
 
-# Narration audio, write-through cached by server/index.js — regenerated
-# on demand from Azure Speech, so it doesn't need to be committed. Delete
-# a file (or the whole dir) any time to force that slide to re-synthesize.
-public/voices/
+# NOTE: public/voices/ is deliberately NOT ignored. The committed mp3s are what
+# let a visitor hear a deck with no Azure key and no server running, so they're
+# a shipped asset rather than a build artifact. Delete a file to force that
+# slide to re-synthesize on the next bake.

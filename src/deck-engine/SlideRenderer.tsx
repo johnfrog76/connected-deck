@@ -27,8 +27,8 @@ export function SlideRenderer({ slide, slideIndex, isFullscreen }: SlideRenderer
       {/* Content panel — left 60% */}
       {hasContent && (
         <div
-          // key per slide forces a remount so stateful visuals reset to a
-          // clean state on arrival.
+          // key per slide forces a remount so stateful visuals (e.g. the
+          // ShellEmbed run result) reset to a clean state on arrival.
           key={`content-${slideIndex}`}
           style={{
             flex: "0 0 60%",

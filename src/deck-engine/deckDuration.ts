@@ -1,15 +1,17 @@
 import type { Slide } from "../decks/types";
 import { slideSpokenText } from "./sayText";
 
-// Approximate read speed used for the estimate — ~120 wpm effective (with
-// natural punctuation pauses), expressed as chars/sec. Tune this if it drifts
-// noticeably from how the deck actually plays.
-export const NARRATION_CHARS_PER_SEC = 12;
+// How fast the Azure voice reads at its default rate (no SSML `rate` change).
+// Calibrated against a real recording rather than guessed: a 30-slide deck,
+// ~11.5k spoken characters, transitions under 10s, clocking just under 15:00 —
+// which solves to ~15 chars/sec at a 5s dwell. Re-measure and adjust if a
+// future voice or rate reads noticeably differently.
+export const NARRATION_CHARS_PER_SEC = 15;
 
-// Flat per-slide time to take the slide in, on top of narration — applies
-// even to a slide with no Say text (a pure-visual slide still costs viewing
-// time).
-export const SLIDE_DWELL_SECONDS = 10;
+// Flat per-slide time to take the slide in, on top of narration — the transition
+// pause the estimate is asked to include. Applies even to a slide with no Say
+// text (a pure-visual slide still costs viewing time).
+export const SLIDE_DWELL_SECONDS = 5;
 
 // Parse an authored "mm:ss" override into seconds, or null if not well-formed.
 function parseMmSs(value: string | undefined): number | null {
