@@ -285,14 +285,20 @@ refactor regresses silently, so they're the ones worth a headless assertion.
 ## Where this came from
 
 The engine was extracted from a larger private toolkit, where it drives a
-library of decks across two host apps. Extraction means the two copies are kept
-in sync by periodic re-baseline, not by a shared package — so if you're
-comparing them, expect the engine files to match and the surrounding app not to.
+library of decks across two host apps. The copies are kept in sync by periodic
+re-baseline, not by a shared package — so if you're comparing them, expect the
+engine files to match and the surrounding app not to.
 
-One deliberate difference worth naming: upstream, `Deck.slides` takes an
-active-organization slug, for decks that render org-scoped sample data. That's a
-host concept with no meaning in a standalone repo, so here `slides()` takes no
-arguments. It's not an oversight, and it shouldn't be "fixed" back.
+`Deck.slides()` takes no arguments, and that's worth a note because it briefly
+didn't match. Upstream it used to carry an active-organization slug, for decks
+rendering org-scoped sample data. Dropping it here wasn't a simplification for
+the public repo — it was a judgment that a deck shouldn't have to know about
+orgs at all, and upstream has since removed it too. A deck that genuinely needs
+live host data should read it from the host's own runtime rather than have it
+threaded through the interface every other deck has to implement.
+
+The two `Deck` types now agree. If you ever see them drift again, that's a
+question to settle, not a difference to preserve.
 
 ## Stack
 
