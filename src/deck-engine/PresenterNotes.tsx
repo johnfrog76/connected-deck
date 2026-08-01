@@ -20,6 +20,7 @@ import {
 import { DECKS } from "../decks/index";
 import type { Slide } from "../decks/types";
 import { MarkdownViewer } from "../shared/MarkdownViewer";
+import { usePersistedValue } from "../shared/usePersistedState";
 import { ZoomControl } from "../shared/ZoomControl";
 import { NoteLegend } from "./PresenterNoteKit";
 import { SlideRenderer } from "./SlideRenderer";
@@ -38,18 +39,11 @@ import {
 const DECK_BG = "#07080f";
 const BORDER = "#1e2030";
 
-// Persisted voice preference: a presenter who picks Brian keeps Brian across
-// reloads and decks. Falls back to the endpoint default only when nothing valid
-// is stored (first run, or a stored voice that's since been removed).
-function loadStoredVoice(): string {
-  try {
-    const stored = localStorage.getItem(VOICE_STORAGE_KEY);
-    if (stored && NARRATION_VOICES.some((v) => v.id === stored)) return stored;
-  } catch {
-    // localStorage can throw (private mode / disabled) — fall through to default.
-  }
-  return DEFAULT_VOICE_ID;
-}
+// Guards what comes back out of storage: a stored voice outlives the code that
+// wrote it, so an id since removed from NARRATION_VOICES must not be handed to
+// a caller that assumes it still exists. usePersistedValue falls back to the
+// endpoint default when this says no.
+const isKnownVoice = (stored: string) => NARRATION_VOICES.some((v) => v.id === stored);
 
 // Virtual full-slide canvas the next-slide card scales down from, so the same
 // SlideRenderer (content + copy, 60/40 split) that drives the main deck
@@ -199,7 +193,12 @@ export function PresenterNotes({
   // Read the remembered voice once per mount and hand it to useVoiceControls as a
   // preference — it's honored only if that voice can actually narrate this deck,
   // so a stored "Brian" on a Jenny-only deck no longer selects a silent voice.
-  const [storedVoice] = useState(loadStoredVoice);
+  // A presenter who picks Brian keeps Brian across reloads and decks.
+  const { value: storedVoice, setValue: persistVoice } = usePersistedValue(
+    VOICE_STORAGE_KEY,
+    DEFAULT_VOICE_ID,
+    isKnownVoice,
+  );
 
   // Narration playback. "On" is a MODE, not a one-shot play: while on, every
   // slide arrival (from either window) auto-fetches and plays that slide's Say
@@ -228,13 +227,9 @@ export function PresenterNotes({
   const handleVoiceChange = useCallback(
     (next: string) => {
       setVoiceId(next);
-      try {
-        localStorage.setItem(VOICE_STORAGE_KEY, next);
-      } catch {
-        // Preference just won't persist if storage is unavailable — not fatal.
-      }
+      persistVoice(next);
     },
-    [setVoiceId],
+    [setVoiceId, persistVoice],
   );
   const audioRef = useRef<HTMLAudioElement | null>(null);
   // Guards against the overlapping-playback race: paging quickly stacks up one
