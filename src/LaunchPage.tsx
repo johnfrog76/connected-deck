@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Badge,
@@ -11,7 +12,9 @@ import {
   makeStyles,
   tokens,
 } from "@fluentui/react-components";
-import { ArrowRightRegular, Clock12Regular } from "@fluentui/react-icons";
+import { ArrowRightRegular, Clock12Regular, SettingsRegular } from "@fluentui/react-icons";
+import { SettingsDrawer } from "./SettingsDrawer";
+import { MEDIA } from "./media";
 import { DECKS } from "./decks/index";
 import { DeckState } from "./decks/types";
 import { estimateDeckDuration } from "./deck-engine/deckDuration";
@@ -25,14 +28,25 @@ const REPO_URL = "https://github.com/johnfrog76/connected-deck";
 // The mode switch sits in the open rather than behind a gear icon on purpose:
 // having two viewing modes is the thing this app demonstrates, so it should be
 // visible before you've clicked anything, not discovered later.
+//
+// The gear is for everything else (SettingsDrawer). Sofa/Podium appears in
+// BOTH places and that's deliberate, not a duplicate: both read the one
+// presenterMode context, so they can't disagree, and someone who goes looking
+// for a settings panel shouldn't find the app's main choice missing from it.
 
 const useStyles = makeStyles({
+  // Mobile-first throughout this file: the BASE declaration is the phone, and
+  // the desktop values cascade from a MEDIA.sm block below them. See media.ts
+  // for why that order is the contract rather than a preference.
   page: {
     minHeight: "100vh",
     backgroundColor: tokens.colorNeutralBackground1,
-    padding: "48px 24px",
+    padding: "24px 16px",
     display: "flex",
     justifyContent: "center",
+    [MEDIA.sm]: {
+      padding: "48px 24px",
+    },
   },
   wrap: {
     width: "100%",
@@ -41,14 +55,30 @@ const useStyles = makeStyles({
     flexDirection: "column",
     gap: tokens.spacingVerticalXL,
   },
+  // Title and gear on one line. The gear is the only chrome on this page, so
+  // it sits with the title rather than floating in a bar of its own.
+  titleRow: {
+    display: "flex",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    gap: tokens.spacingHorizontalM,
+  },
+  // Stacks on a phone: label above switch, so neither gets squeezed to a
+  // couple of characters. Side by side once there's room.
   modeRow: {
     display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: tokens.spacingHorizontalL,
+    flexDirection: "column",
+    alignItems: "flex-start",
+    gap: tokens.spacingVerticalS,
     padding: tokens.spacingVerticalM,
     paddingLeft: tokens.spacingHorizontalL,
     paddingRight: tokens.spacingHorizontalL,
+    [MEDIA.sm]: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: tokens.spacingHorizontalL,
+    },
     borderRadius: tokens.borderRadiusMedium,
     border: `1px solid ${tokens.colorNeutralStroke2}`,
     backgroundColor: tokens.colorNeutralBackground2,
@@ -65,11 +95,29 @@ const useStyles = makeStyles({
   },
   list: { display: "flex", flexDirection: "column", gap: tokens.spacingVerticalM },
   card: { padding: tokens.spacingVerticalM },
+  // The Watch/Present button drops below the title on a phone and goes
+  // full-width — a 44px-tall target across the card beats a small one wedged
+  // beside wrapping text.
   cardTop: {
     display: "flex",
-    alignItems: "flex-start",
-    justifyContent: "space-between",
-    gap: tokens.spacingHorizontalM,
+    flexDirection: "column",
+    alignItems: "stretch",
+    gap: tokens.spacingVerticalS,
+    [MEDIA.sm]: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      justifyContent: "space-between",
+      gap: tokens.spacingHorizontalM,
+    },
+  },
+  // 44px is the Apple HIG touch floor; Fluent's default button is shorter.
+  // Only applied below sm — a mouse doesn't need it, and a room watching a
+  // launch page doesn't want it.
+  cardAction: {
+    minHeight: "44px",
+    [MEDIA.sm]: {
+      minHeight: "unset",
+    },
   },
   title: {
     fontSize: tokens.fontSizeBase400,
@@ -108,13 +156,21 @@ const useStyles = makeStyles({
   // Fixed width, and the label sits to the LEFT of the button. CopyLinkButton
   // mounts a "Copied!" node beside itself on click; letting this group resize
   // would squeeze the flex:1 paragraph and reflow the whole row mid-click.
+  // The fixed width is a DESKTOP fix (see the note above): it stops the
+  // "Copied!" node from reflowing the paragraph beside it. On a phone there is
+  // no paragraph beside it — the footer has already stacked — so the fixed
+  // width only serves to strand the button off-centre.
   footerCta: {
     display: "flex",
     alignItems: "center",
-    justifyContent: "flex-end",
+    justifyContent: "flex-start",
     gap: tokens.spacingHorizontalS,
     flexShrink: 0,
-    width: "210px",
+    width: "100%",
+    [MEDIA.sm]: {
+      justifyContent: "flex-end",
+      width: "210px",
+    },
   },
   footerCtaLabel: {
     color: tokens.colorNeutralForeground3,
@@ -195,6 +251,7 @@ function DeckRow({ deck, presenter }: { deck: Deck; presenter: boolean }) {
           </div>
         </div>
         <Button
+          className={styles.cardAction}
           icon={<ArrowRightRegular />}
           appearance="primary"
           // The mode is pinned into the URL rather than left to the setting, so
@@ -213,12 +270,23 @@ function DeckRow({ deck, presenter }: { deck: Deck; presenter: boolean }) {
 export function LaunchPage() {
   const styles = useStyles();
   const { presenter, setPresenter } = usePresenterMode();
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   return (
     <div className={styles.page}>
       <div className={styles.wrap}>
         <div>
-          <Title1>Connected Deck</Title1>
+          <div className={styles.titleRow}>
+            <Title1>Connected Deck</Title1>
+            <Tooltip content="Settings" relationship="label">
+              <Button
+                appearance="subtle"
+                icon={<SettingsRegular />}
+                aria-label="Settings"
+                onClick={() => setSettingsOpen(true)}
+              />
+            </Tooltip>
+          </div>
           <Body1
             style={{
               display: "block",
@@ -272,6 +340,8 @@ export function LaunchPage() {
           </div>
         </footer>
       </div>
+
+      <SettingsDrawer open={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </div>
   );
 }

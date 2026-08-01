@@ -1,5 +1,6 @@
-import { createContext, useCallback, useContext, useMemo, useState } from "react";
+import { createContext, useContext, useMemo } from "react";
 import type { ReactNode } from "react";
+import { usePersistedFlag } from "./shared/usePersistedState";
 
 // How this browser opens a deck by default: Sofa (audience) or Podium
 // (presenter). Remembered because whether you come here to watch or to rehearse
@@ -22,27 +23,10 @@ const PresenterModeContext = createContext<PresenterModeValue>({
   setPresenter: () => {},
 });
 
-function initialPresenter(): boolean {
-  if (typeof window === "undefined") return false;
-  try {
-    return window.localStorage?.getItem(STORAGE_KEY) === "1";
-  } catch {
-    // localStorage throws in private mode / when disabled — fall back to Sofa.
-    return false;
-  }
-}
-
 export function PresenterModeProvider({ children }: { children: ReactNode }) {
-  const [presenter, setPresenterState] = useState(initialPresenter);
-
-  const setPresenter = useCallback((next: boolean) => {
-    setPresenterState(next);
-    try {
-      window.localStorage?.setItem(STORAGE_KEY, next ? "1" : "0");
-    } catch {
-      // Not persisting is survivable; the setting still holds for this session.
-    }
-  }, []);
+  // Default false = Sofa. The hook owns everything about how that's stored,
+  // including the private-mode guard this file used to spell out twice.
+  const { value: presenter, setValue: setPresenter } = usePersistedFlag(STORAGE_KEY);
 
   const value = useMemo(() => ({ presenter, setPresenter }), [presenter, setPresenter]);
 

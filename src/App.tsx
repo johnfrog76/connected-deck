@@ -5,6 +5,8 @@ import { LaunchPage } from "./LaunchPage";
 import { PresentationDeck } from "./PresentationDeck";
 import { PresenterNotes } from "./deck-engine/PresenterNotes";
 import { PresenterModeProvider } from "./presenterMode";
+import { VoicePreferenceProvider } from "./voicePreference";
+import { ViewportProvider } from "./viewport";
 import { BAKED_VOICES, voiceUrl, type VoiceId } from "./bakedVoices";
 
 // The notes popout is a SEPARATE WINDOW with its own React tree, opened by URL
@@ -30,15 +32,19 @@ export default function App() {
 
   return (
     <FluentProvider theme={darkTheme} style={{ colorScheme: "dark", minHeight: "100vh" }}>
-      <PresenterModeProvider>
-        <div style={isDeck ? undefined : { minHeight: "100vh" }}>
-          <Routes>
-            <Route path="/deck/:deckId/notes" element={<NotesWindow />} />
-            <Route path="/deck/:deckId" element={<PresentationDeck />} />
-            <Route path="/" element={<LaunchPage />} />
-          </Routes>
-        </div>
-      </PresenterModeProvider>
+      <ViewportProvider>
+        <PresenterModeProvider>
+          <VoicePreferenceProvider>
+            <div style={isDeck ? undefined : { minHeight: "100vh" }}>
+              <Routes>
+                <Route path="/deck/:deckId/notes" element={<NotesWindow />} />
+                <Route path="/deck/:deckId" element={<PresentationDeck />} />
+                <Route path="/" element={<LaunchPage />} />
+              </Routes>
+            </div>
+          </VoicePreferenceProvider>
+        </PresenterModeProvider>
+      </ViewportProvider>
     </FluentProvider>
   );
 }
