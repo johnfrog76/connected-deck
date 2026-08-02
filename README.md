@@ -102,6 +102,24 @@ flag start narration on its own — turn Voice off, open a deck, and it read
 itself aloud anyway. Never let a dependent setting override the setting it
 depends on.
 
+That rule holds at **both layers**, because narration goes quiet at two
+different depths. The stored preferences couple in `voicePreference.tsx`
+(Settings' Voice switch off clears the Suitcase flag). But the in-deck sheet's
+Narrated switch is deliberately *session* state — muting the deck you're
+watching shouldn't rewrite what every future deck does — so the player gates
+the chrome on the live value too: a viewing declared Silent hands the transport
+back to the paging arrows. An earlier version gated only on the stored flag,
+and flipping the sheet to Silent left a play button over a deck that would
+never move, with no way to page by hand.
+
+Which is also why **pause is not Silent**. The transport button holds playback
+with narration still on (`paused` in `useSlideNarration`), it doesn't flip the
+mode — if it did, the session gate above would swap the transport for paging
+arrows under the thumb that pressed it. Three distinct quiets, three owners:
+`paused` belongs to the listener, `suspended` (sheet open) to the player, and
+`enabled` — the one that changes what the chrome *is* — to the settings
+surfaces.
+
 **It's mobile-only, and gated on the live viewport.** The mobile chrome trades
 the paging arrows for one big play/pause; on a wide screen the ordinary arrows
 are right there, so a deck advancing by itself would be moving with nothing on
@@ -415,7 +433,13 @@ in a state nobody thinks to open by hand:
   the breakpoint, so the `ended` event that should have moved the deck fired
   into nothing and the deck sat on a finished slide forever;
 - **desktop width with the preference on**, where slides must *not* advance;
-- the **last slide**, which should stop rather than run off the end.
+- the **last slide**, which should stop rather than run off the end;
+- the sheet flipped to **Silent mid-viewing** — the chrome gated on the stored
+  flag only, so the transport outlived the narration it advances on and the
+  paging arrows never came back;
+- **pause pressed on the transport** — which must hold playback *without*
+  flipping the narration mode, or the session gate hands the bar back to the
+  arrows and the button deletes itself under the thumb that pressed it.
 
 The viewport is stubbed (jsdom has no `matchMedia`), and `setViewport` fires
 the registered listeners so a test can resize a mounted tree the way a real

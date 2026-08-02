@@ -24,6 +24,21 @@ export interface NarrationControls {
   enabled: boolean;
   toggle: () => void;
   /**
+   * Transport hold — playback held by the listener, narration mode still ON.
+   * The mobile transport button drives THIS, not `toggle`: pausing is "hold
+   * the audiobook", not "make this viewing silent", so it must not collapse
+   * the Suitcase chrome back to paging arrows under the thumb that pressed it.
+   * `toggle` (the mode change) belongs to the settings surfaces.
+   */
+  paused: boolean;
+  togglePause: () => void;
+  /**
+   * Current clip progress 0..1 for the transport's ring — a getter so the
+   * ring's ~5×/s sampling stays inside SuitcaseTransport instead of
+   * re-rendering the player at the audio clock's rate.
+   */
+  getSlideProgress: () => number;
+  /**
    * Voices WITH their deck-wide coverage (voiceCoverage.ts). Uncovered voices
    * are rendered disabled rather than dropped, so the audience can see that a
    * voice exists but wasn't baked for this deck — a missing option looks like a

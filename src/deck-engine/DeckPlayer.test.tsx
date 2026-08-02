@@ -506,6 +506,69 @@ describe("DeckChrome — mobile and desktop are different components", () => {
     expect(screen.queryByLabelText("Next slide")).toBeNull();
     expect(screen.getByLabelText(/^(Play|Pause)$/)).toBeTruthy();
   });
+
+  it("compact: declaring the viewing Silent hands back the paging controls", () => {
+    // The bus repro this pins: Suitcase on, narrated deck, phone width. Flip
+    // the sheet's Narrated switch to Silent and close. "Requires narration in
+    // both directions" holds at the SESSION layer too — a silent viewing has
+    // no clip-ends to advance on, so the transport must give way to the
+    // arrows. It used to stay: a play button over a deck that would never
+    // move, with no way to page by hand.
+    setViewport("compact");
+    mountPlayer("audience", { narrateByDefault: true, suitcase: true });
+    expect(screen.getByLabelText(/^(Play|Pause)$/)).toBeTruthy();
+
+    fireEvent.click(screen.getByLabelText("Settings"));
+    fireEvent.click(screen.getByRole("switch", { name: /Narrated|Silent/ }));
+    fireEvent.click(screen.getByLabelText("Close settings"));
+
+    expect(screen.queryByLabelText(/^(Play|Pause)$/)).toBeNull();
+    expect(screen.getByLabelText("Next slide")).toBeTruthy();
+  });
+
+  it("compact: transport pause is a hold — the transport stays", () => {
+    // Pause and Silent are different acts on the same silence. Pause holds
+    // playback with narration still ON, so the bar keeps its one button (now
+    // showing Play) — if pausing flipped the narration mode instead, the
+    // session gate above would swap the transport for paging arrows under the
+    // thumb that pressed it.
+    setViewport("compact");
+    mountPlayer("audience", { narrateByDefault: true, suitcase: true });
+    const audio = audioInstances[audioInstances.length - 1];
+    audio.currentTime = 3;
+    expect(audio.paused).toBe(false);
+
+    fireEvent.click(screen.getByLabelText("Pause"));
+    expect(audio.paused).toBe(true);
+    expect(screen.queryByLabelText("Next slide")).toBeNull();
+
+    fireEvent.click(screen.getByLabelText("Play"));
+    // Resumed from where it was held, not restarted.
+    expect(audio.paused).toBe(false);
+    expect(audio.currentTime).toBe(3);
+  });
+
+  it("compact: paused transport does not survive Silent → Narrated", () => {
+    // Flipping Narrated back on is a request to HEAR the deck. A pause pressed
+    // during some earlier narrated stretch must not outlive the mode change —
+    // honoring it would leave the deck silently stopped behind a switch
+    // claiming it reads aloud, with a Play button as the only clue.
+    setViewport("compact");
+    mountPlayer("audience", { narrateByDefault: true, suitcase: true });
+    const audio = audioInstances[audioInstances.length - 1];
+
+    fireEvent.click(screen.getByLabelText("Pause"));
+    expect(audio.paused).toBe(true);
+
+    fireEvent.click(screen.getByLabelText("Settings"));
+    const narrated = () =>
+      screen.getByRole("switch", { name: /Narrated|Silent/ });
+    fireEvent.click(narrated()); // Silent
+    fireEvent.click(narrated()); // Narrated again
+    fireEvent.click(screen.getByLabelText("Close settings"));
+
+    expect(audio.paused).toBe(false);
+  });
 });
 
 describe("DeckPlayer — nothing baked, no API: every surface says so", () => {

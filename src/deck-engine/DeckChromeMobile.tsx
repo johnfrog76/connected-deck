@@ -9,10 +9,9 @@ import {
 } from "@fluentui/react-components";
 import {
   DismissRegular,
-  PauseFilled,
-  PlayFilled,
   SettingsRegular,
 } from "@fluentui/react-icons";
+import { SuitcaseTransport } from "./SuitcaseTransport";
 import {
   NAV_BG,
   BORDER,
@@ -123,21 +122,20 @@ export function DeckChromeMobile({
 
         {/* Center: either the paging group, or Suitcase Mode's single
             play/pause. Never both — the whole point of Suitcase Mode is that
-            there is one control worth finding without looking. */}
+            there is one control worth finding without looking.
+
+            The button drives the transport HOLD (togglePause), never the
+            narration mode (toggle). Pause means "hold the audiobook", so the
+            transport stays put with a Play glyph; if it flipped the mode
+            instead, the host's gating would hand the bar back to the paging
+            arrows and the button would delete itself under the thumb that
+            pressed it. The way OUT of the transport is a mode change, and
+            that lives in the sheet behind the gear. */}
         {showTransport && narration ? (
-          <Button
-            size="large"
-            appearance="subtle"
-            onClick={narration.toggle}
-            aria-label={narration.enabled ? "Pause" : "Play"}
-            style={{ minHeight: TOUCH.minHeight, minWidth: "72px" }}
-            icon={
-              narration.enabled ? (
-                <PauseFilled fontSize="28px" />
-              ) : (
-                <PlayFilled fontSize="28px" />
-              )
-            }
+          <SuitcaseTransport
+            paused={narration.paused}
+            onTogglePause={narration.togglePause}
+            getProgress={narration.getSlideProgress}
           />
         ) : (
           <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>

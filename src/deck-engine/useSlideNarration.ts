@@ -23,6 +23,31 @@ export interface SlideNarration {
   /** True while a clip is actually sounding. */
   playing: boolean;
   toggle: () => void;
+  /**
+   * Transport hold: the listener pressed pause. Narration stays ON — the
+   * settings sheet's switch still reads "Narrated", and Suitcase Mode keeps
+   * its transport — playback is simply held until togglePause resumes it.
+   *
+   * This is a THIRD state, deliberately distinct from the other two ways
+   * narration goes quiet: `enabled` off means "this viewing is silent" (a mode
+   * change — Suitcase loses its parent and the chrome returns to paging
+   * arrows), and `suspended` means "the sheet is open over the deck" (the
+   * player's own hold, invisible to the listener). Folding pause into either
+   * one is how the pause button ends up deleting itself mid-tap, or the sheet
+   * lying about the state it reports.
+   */
+  paused: boolean;
+  togglePause: () => void;
+  /**
+   * Progress through the slide's audible LIFE, 0..1 — the clip plus the
+   * post-clip dwell, the same model deckDuration.ts prices a slide at. So in
+   * Suitcase Mode the ring completes exactly when the deck advances, rather
+   * than sitting full through five silent seconds looking stuck. Read from
+   * the live element on demand — a getter, not state, so a caller sampling
+   * it (SuitcaseTransport's ring) doesn't force this hook's owner to
+   * re-render at the audio clock's rate. 0 with nothing loaded.
+   */
+  getSlideProgress: () => number;
 }
 
 export function useSlideNarration({
@@ -61,6 +86,11 @@ export function useSlideNarration({
   suspended?: boolean;
 }): SlideNarration {
   const [enabled, setEnabled] = useState(enabledDefault);
+  // The transport hold. Composes with `suspended` rather than replacing it —
+  // either one held means the element stays quiet — but they belong to
+  // different owners: `suspended` to the player (sheet open), `paused` to the
+  // listener (the transport button).
+  const [paused, setPaused] = useState(false);
   const [playing, setPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const onEndedRef = useRef(onEnded);
@@ -68,17 +98,23 @@ export function useSlideNarration({
   // This slide's clip already finished at a moment when no onEnded was armed.
   // Cleared whenever a new clip starts, and acted on if onEnded arrives late.
   const endedWhileUnarmedRef = useRef(false);
-  // Read by the main effect via a ref, NOT a dependency: making `suspended` a
+  // Wall-clock moment the current clip ended — the dwell's own clock, read by
+  // getSlideProgress so the ring keeps filling through the post-clip silence.
+  // Wall clock rather than a counter because nothing re-renders during the
+  // dwell; the poller computes elapsed on demand.
+  const dwellStartedAtRef = useRef<number | null>(null);
+  // Read by the main effect via a ref, NOT a dependency: making the hold a
   // dep there would tear down and restart the clip from the beginning every
-  // time the sheet opened or closed, which is the opposite of holding it.
-  const suspendedRef = useRef(suspended);
+  // time the sheet opened or closed (or pause was pressed), which is the
+  // opposite of holding it.
+  const heldRef = useRef(suspended || paused);
   // In an effect, not the render body — a ref write during render is a side
   // effect and this repo's hooks lint rejects it. Ordering is safe: the main
   // effect below reads this ref, and effects run in declaration order, so this
   // one has already updated it by the time that one runs.
   useEffect(() => {
-    suspendedRef.current = suspended;
-  }, [suspended]);
+    heldRef.current = suspended || paused;
+  }, [suspended, paused]);
 
   // Kept current in an effect rather than assigned during render — a ref write
   // in the render body is a side effect, and this repo's hooks lint rejects it.
@@ -107,22 +143,26 @@ export function useSlideNarration({
       clearTimeout(dwellTimerRef.current);
       dwellTimerRef.current = null;
     }
+    dwellStartedAtRef.current = null;
   }, []);
 
-  // Suspend / resume, kept OUT of the main effect below on purpose: that one
-  // is keyed on slide and voice and starts a clip from the beginning, so
-  // folding `suspended` into its deps would restart the current slide's
-  // narration every time the settings sheet closed. This pauses and resumes
-  // the same element mid-clip instead, and never touches `enabled` — the
-  // sheet's Narration switch keeps reading "Narrated" while it's held.
+  // Hold / resume (sheet-suspend OR transport pause), kept OUT of the main
+  // effect below on purpose: that one is keyed on slide and voice and starts a
+  // clip from the beginning, so folding the hold into its deps would restart
+  // the current slide's narration every time the settings sheet closed or the
+  // pause button was pressed. This pauses and resumes the same element
+  // mid-clip instead, and never touches `enabled` — the sheet's Narration
+  // switch keeps reading "Narrated" while it's held.
   //
   // A dwell timer already running is left alone: it's counting down to an
   // advance the visitor asked for, and cancelling it here would silently
-  // strand a Suitcase Mode deck on the slide it had just finished.
+  // strand a Suitcase Mode deck on the slide it had just finished. Pausing in
+  // that 5-second gap therefore lets the queued slide change complete and then
+  // holds on the new slide — one flip, then stillness until Play.
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio || !enabled || !url) return;
-    if (suspended) {
+    if (suspended || paused) {
       audio.pause();
     } else if (!audio.ended) {
       // Play from wherever the element is: mid-clip if it was held part-way
@@ -134,7 +174,7 @@ export function useSlideNarration({
       // the dwell timer already owns what happens next.
       audio.play().catch(() => setPlaying(false));
     }
-  }, [suspended, enabled, url]);
+  }, [suspended, paused, enabled, url]);
 
   // On every change of enabled / url (slide or voice change), sync audio to
   // match: if on and there's a clip, (re)start it; otherwise stop. This single
@@ -152,10 +192,12 @@ export function useSlideNarration({
     // this, paging by hand off a finished slide would leave the flag set and
     // the NEXT re-arm would advance a slide the visitor had just arrived at.
     endedWhileUnarmedRef.current = false;
+    dwellStartedAtRef.current = null;
     audio.onplay = () => setPlaying(true);
     audio.onpause = () => setPlaying(false);
     audio.onended = () => {
       setPlaying(false);
+      dwellStartedAtRef.current = Date.now();
       dwellTimerRef.current = setTimeout(() => {
         dwellTimerRef.current = null;
         if (onEndedRef.current) {
@@ -175,11 +217,12 @@ export function useSlideNarration({
     audio.src = url;
     // Don't start while held. This effect runs on slide/voice changes AND
     // whenever `stop` is re-created, so without the guard a re-render during
-    // an open settings sheet would start the clip playing underneath it — the
-    // suspend effect above has already run by then and won't run again.
-    // Suitcase Mode makes this reachable on its own: the deck can auto-advance
-    // to a new slide while the sheet is open, which is exactly a url change.
-    if (!suspendedRef.current) {
+    // an open settings sheet (or a transport pause) would start the clip
+    // playing underneath it — the hold effect above has already run by then
+    // and won't run again. Suitcase Mode makes this reachable on its own: the
+    // deck can auto-advance to a new slide while the sheet is open, which is
+    // exactly a url change.
+    if (!heldRef.current) {
       audio.play().catch(() => setPlaying(false));
     }
     return stop;
@@ -188,7 +231,45 @@ export function useSlideNarration({
   // Belt-and-suspenders: stop on unmount (exiting the deck).
   useEffect(() => stop, [stop]);
 
-  const toggle = useCallback(() => setEnabled((on) => !on), []);
+  // Changing the MODE clears any transport hold: flipping "Silent" back to
+  // "Narrated" is a request to hear the deck, and honoring a pause pressed in
+  // some earlier narrated stretch would leave it silently stopped with a
+  // switch on screen claiming it's reading aloud.
+  const toggle = useCallback(() => {
+    setEnabled((on) => !on);
+    setPaused(false);
+  }, []);
+  const togglePause = useCallback(() => setPaused((p) => !p), []);
 
-  return { available: !!url, enabled, playing, toggle };
+  const getSlideProgress = useCallback(() => {
+    const audio = audioRef.current;
+    // duration is NaN until metadata loads (and Infinity for streams) —
+    // both read as "no clock yet", not as progress.
+    if (!audio || !Number.isFinite(audio.duration) || audio.duration <= 0) {
+      return 0;
+    }
+    // The slide's audible life is clip + dwell (deckDuration's model), so the
+    // fraction keeps moving through the post-clip silence and lands on 1 at
+    // the moment the dwell timer advances the deck.
+    const total = audio.duration + SLIDE_DWELL_SECONDS;
+    if (audio.ended) {
+      const started = dwellStartedAtRef.current;
+      const dwellElapsed =
+        started === null
+          ? 0
+          : Math.min((Date.now() - started) / 1000, SLIDE_DWELL_SECONDS);
+      return Math.min(1, (audio.duration + dwellElapsed) / total);
+    }
+    return Math.min(audio.currentTime, audio.duration) / total;
+  }, []);
+
+  return {
+    available: !!url,
+    enabled,
+    playing,
+    toggle,
+    paused,
+    togglePause,
+    getSlideProgress,
+  };
 }

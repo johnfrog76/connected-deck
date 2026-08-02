@@ -197,7 +197,16 @@ export function DeckPlayer({
           toggleFullscreen={toggleFullscreen} onExit={exitDeck}
           hasNotesSurface={mode === "presenter"}
           notesUrlBase={notesUrlBase}
-          suitcaseMode={suitcaseActive}
+          // "Requires narration in both directions" applies to the SESSION
+          // layer too, not just the stored prefs (voicePreference.tsx): the
+          // sheet's Narrated switch drives narration.enabled, and a viewing
+          // declared silent has no clip-ends for Suitcase Mode to advance on.
+          // Without this gate the chrome kept the one-button transport over a
+          // silent deck — a play control for a mode that could no longer mean
+          // anything, with the paging arrows nowhere. Transport PAUSE is not
+          // this: pause holds playback with narration still on (see
+          // useSlideNarration), so the transport survives its own button.
+          suitcaseMode={suitcaseActive && narration.enabled}
           onSettingsOpenChange={setSettingsOpen}
           narration={
             wantsNarration
@@ -206,6 +215,9 @@ export function DeckPlayer({
                   playing: narration.playing,
                   enabled: narration.enabled,
                   toggle: narration.toggle,
+                  paused: narration.paused,
+                  togglePause: narration.togglePause,
+                  getSlideProgress: narration.getSlideProgress,
                   voices: surveyedVoices,
                   voiceId,
                   // Session AND storage: the picker moves this viewing, and
