@@ -63,7 +63,7 @@ const useStyles = makeStyles({
   },
   wrap: {
     width: "100%",
-    maxWidth: "960px",
+    maxWidth: "1200px",
     display: "flex",
     flexDirection: "column",
     gap: tokens.spacingVerticalXL,
@@ -136,21 +136,21 @@ const useStyles = makeStyles({
     display: "flex",
     flexDirection: "column",
     gap: tokens.spacingVerticalS,
+    margin: `${tokens.spacingVerticalXL} 0 ${tokens.spacingVerticalL}`,
   },
   // The page's H1 — the lockup above is branding, not a heading, so the
   // content heading carries the outline and the scale.
   stageTitle: {
     margin: 0,
-    fontSize: tokens.fontSizeHero800,
-    lineHeight: tokens.lineHeightHero800,
-    fontWeight: tokens.fontWeightBold,
+    fontSize: tokens.fontSizeHero700,
+    lineHeight: tokens.lineHeightHero700,
     color: tokens.colorNeutralForeground1,
   },
   stageHint: {
     fontSize: tokens.fontSizeBase500,
     lineHeight: tokens.lineHeightBase500,
     color: tokens.colorNeutralForeground2,
-    maxWidth: "62ch",
+    margin: `${tokens.spacingVerticalM} 0 ${tokens.spacingVerticalXL} 0`,
   },
   stageGrid: {
     display: "grid",
@@ -266,6 +266,7 @@ const useStyles = makeStyles({
   // full-width — a 44px-tall target across the card beats a small one wedged
   // beside wrapping text.
   cardTop: {
+    padding: tokens.spacingVerticalS,
     display: "flex",
     flexDirection: "column",
     alignItems: "stretch",
@@ -297,16 +298,15 @@ const useStyles = makeStyles({
   // action column and reads like terms and conditions. ~70ch is the cap.
   summary: {
     display: "block",
-    marginTop: tokens.spacingVerticalXS,
-    maxWidth: "70ch",
-    fontSize: tokens.fontSizeBase200,
+    padding: `${tokens.spacingVerticalXS} 0`,
+    fontSize: tokens.fontSizeBase300,
     color: tokens.colorNeutralForeground2,
     lineHeight: tokens.lineHeightBase300,
   },
   badges: {
     display: "flex",
     alignItems: "center",
-    gap: tokens.spacingHorizontalXS,
+    gap: tokens.spacingHorizontalM,
     flexWrap: "wrap",
     marginTop: tokens.spacingVerticalS,
   },
@@ -314,9 +314,7 @@ const useStyles = makeStyles({
   // page exists, so it reads as the stage head's second paragraph rather than
   // as fine print nobody scrolls to.
   openSourceCopy: {
-    margin: 0,
-    marginTop: tokens.spacingVerticalM,
-    maxWidth: "62ch",
+    margin: `${tokens.spacingVerticalM} 0 ${tokens.spacingVerticalXL} 0`,
     fontSize: tokens.fontSizeBase500,
     color: tokens.colorNeutralForeground3,
     lineHeight: tokens.lineHeightBase500,
@@ -574,7 +572,7 @@ export function LaunchPage() {
                 suitcaseActive
                   ? isMobile
                     ? "● On now"
-                    : "● On — auto-advance kicks in at phone width"
+                    : "● On — auto-advance kicks in for mobile devices"
                   : "Tap to switch — turns Voice on"
               }
               active={suitcaseActive}
