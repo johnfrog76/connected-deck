@@ -152,10 +152,34 @@ function setViewport(kind: "compact" | "desktop") {
   });
 }
 
+// jsdom implements neither PointerEvent nor setPointerCapture. Both gaps fail
+// silently in a way that mimics a working feature: with no constructor,
+// fireEvent.pointerDown builds a plain Event whose isPrimary and clientX are
+// undefined, every synthesized swipe is discarded, and each "must not page"
+// assertion then passes for the wrong reason.
+class PointerEventStub extends MouseEvent {
+  pointerId: number;
+  isPrimary: boolean;
+  constructor(type: string, init: PointerEventInit = {}) {
+    super(type, init);
+    this.pointerId = init.pointerId ?? 0;
+    this.isPrimary = init.isPrimary ?? true;
+  }
+}
+
 beforeAll(() => {
   (globalThis as unknown as { BroadcastChannel: unknown }).BroadcastChannel =
     BroadcastChannelStub;
   (globalThis as unknown as { Audio: unknown }).Audio = AudioStub;
+  if (!("PointerEvent" in globalThis)) {
+    (globalThis as unknown as { PointerEvent: unknown }).PointerEvent = PointerEventStub;
+    (globalThis as unknown as { window: { PointerEvent: unknown } }).window.PointerEvent =
+      PointerEventStub;
+  }
+  // A no-op is the honest stub: capture only affects where later events are
+  // delivered, and these tests fire both ends at the same element.
+  Element.prototype.setPointerCapture ??= function setPointerCapture() {};
+  Element.prototype.releasePointerCapture ??= function releasePointerCapture() {};
 });
 
 beforeEach(() => {
@@ -806,6 +830,158 @@ describe("DeckPlayer — losing presenter mode closes the notes popout", () => {
     rerender(renderAt("presenter"));
 
     expect(closes()).toHaveLength(0);
+  });
+});
+
+describe("DeckPlayer — swipe paging", () => {
+  // The contract these pin: a swipe goes through the controller's own
+  // goNext/goPrev, the same path as the arrows and the arrow keys. That is
+  // what keeps Suitcase Mode's auto-advance intact, so reimplementing the
+  // gesture against narration state directly fails here.
+  const currentSlideId = () => {
+    const src = audioInstances[audioInstances.length - 1]?.src ?? "";
+    return src.match(/\/(s\d+)-/)?.[1] ?? "";
+  };
+
+  /** The slide area — the one swipe target, wrapping SlideRenderer. */
+  const slideSurface = () => document.querySelector("[data-swipe-surface]")!;
+
+  /** One gesture, start to finish, in the shape the hook reads. */
+  function drag(
+    el: Element,
+    { dx, dy = 0, pointerId = 1 }: { dx: number; dy?: number; pointerId?: number },
+  ) {
+    act(() => {
+      fireEvent.pointerDown(el, {
+        pointerId, isPrimary: true, button: 0, clientX: 200, clientY: 400,
+      });
+      fireEvent.pointerUp(el, {
+        pointerId, isPrimary: true, button: 0,
+        clientX: 200 + dx, clientY: 400 + dy,
+      });
+    });
+  }
+
+  beforeEach(() => {
+    jest.useFakeTimers();
+    setViewport("compact");
+  });
+  afterEach(() => jest.useRealTimers());
+
+  it("a left swipe pages forward, a right swipe pages back", () => {
+    mountPlayer("audience", { narrateByDefault: true, suitcase: true });
+    expect(currentSlideId()).toBe("s1");
+
+    drag(slideSurface(), { dx: -120 });
+    expect(currentSlideId()).toBe("s2");
+
+    drag(slideSurface(), { dx: 120 });
+    expect(currentSlideId()).toBe("s1");
+  });
+
+  it("one target reads both directions — travel decides, not where the thumb landed", () => {
+    // Why there is no left zone and no right zone: direction is the sign of
+    // dx. Both gestures below start at the same x; only the travel differs.
+    mountPlayer("audience", { narrateByDefault: true, suitcase: true });
+    const surface = slideSurface();
+
+    drag(surface, { dx: -120 });
+    expect(currentSlideId()).toBe("s2");
+    drag(surface, { dx: 120 });
+    expect(currentSlideId()).toBe("s1");
+  });
+
+  it("ignores a vertical drag — that is a scroll, not a page turn", () => {
+    mountPlayer("audience", { narrateByDefault: true, suitcase: true });
+
+    drag(slideSurface(), { dx: -60, dy: 200 });
+
+    expect(currentSlideId()).toBe("s1");
+  });
+
+  it("ignores a short drag — that is a tap", () => {
+    mountPlayer("audience", { narrateByDefault: true, suitcase: true });
+
+    drag(slideSurface(), { dx: -20 });
+
+    expect(currentSlideId()).toBe("s1");
+  });
+
+  it("desktop: no swipe handlers at all", () => {
+    setViewport("desktop");
+    mountPlayer("audience", { narrateByDefault: true, suitcase: true });
+
+    drag(slideSurface(), { dx: -120 });
+
+    expect(currentSlideId()).toBe("s1");
+  });
+
+  it("swiping during the dwell does not double-advance", () => {
+    // The clip ends and a dwell timer is queued to advance the deck; the
+    // reader swipes during that gap. Without the timer being cleared on the
+    // slide change, the queued advance lands on top of the swipe and the deck
+    // jumps two.
+    mountPlayer("audience", { narrateByDefault: true, suitcase: true });
+    expect(currentSlideId()).toBe("s1");
+
+    act(() => {
+      audioInstances[audioInstances.length - 1].onended?.();
+    });
+    expect(currentSlideId()).toBe("s1");
+
+    drag(slideSurface(), { dx: -120 });
+    expect(currentSlideId()).toBe("s2");
+
+    act(() => {
+      jest.advanceTimersByTime(SLIDE_DWELL_SECONDS * 1000);
+    });
+    expect(currentSlideId()).toBe("s2");
+  });
+
+  it("auto-advance still works after a swipe", () => {
+    // The other half: clearing the queued advance must not leave the mode
+    // dead. The swiped-to slide plays, ends, and advances on its own.
+    mountPlayer("audience", { narrateByDefault: true, suitcase: true });
+
+    drag(slideSurface(), { dx: 120 }); // clamped at the first slide
+    expect(currentSlideId()).toBe("s1");
+
+    act(() => {
+      audioInstances[audioInstances.length - 1].onended?.();
+    });
+    act(() => {
+      jest.advanceTimersByTime(SLIDE_DWELL_SECONDS * 1000);
+    });
+
+    expect(currentSlideId()).toBe("s2");
+  });
+
+  it("a swipe restarts the new slide's clip from the beginning", () => {
+    mountPlayer("audience", { narrateByDefault: true, suitcase: true });
+    const audio = audioInstances[0];
+    audio.currentTime = 12;
+
+    drag(slideSurface(), { dx: -120 });
+
+    expect(audio.src).toContain("s2");
+    expect(audio.currentTime).toBe(0);
+  });
+
+  it("a gesture starting on a control inside the slide belongs to the control", () => {
+    // Slides carry their own links and buttons, and those sit inside the
+    // swipe surface. A drag begun on one is that control's gesture.
+    mountPlayer("audience", { narrateByDefault: true, suitcase: true });
+
+    const control = document.createElement("button");
+    control.textContent = "in-slide control";
+    slideSurface().appendChild(control);
+
+    act(() => {
+      fireEvent.pointerDown(control, { pointerId: 1, isPrimary: true, button: 0, clientX: 200, clientY: 400 });
+      fireEvent.pointerUp(control, { pointerId: 1, isPrimary: true, button: 0, clientX: 60, clientY: 400 });
+    });
+
+    expect(currentSlideId()).toBe("s1");
   });
 });
 

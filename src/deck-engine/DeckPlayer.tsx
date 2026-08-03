@@ -7,6 +7,7 @@ import { useDeckController } from "./DeckController";
 import { SlideRenderer, DECK_BG } from "./SlideRenderer";
 import { DeckChrome } from "./DeckChrome";
 import { useSlideNarration } from "./useSlideNarration";
+import { useSwipeNavigation } from "./useSwipeNavigation";
 import { useViewport } from "../viewport";
 import { useVoiceControls } from "./useVoiceControls";
 import type { NarrationVoice } from "./narrationConstants";
@@ -162,6 +163,19 @@ export function DeckPlayer({
     suspended: settingsOpen,
   });
 
+  // Thumb paging on a phone. Gated on the tier ALONE, not on Suitcase Mode:
+  // a phone-width deck pages by swipe whether it is narrating itself or
+  // showing manual arrows, because the gesture means the same thing either
+  // way. Same live-viewport gate as everything else here, so rotating to
+  // landscape drops it with the rest of the mobile chrome.
+  //
+  // Handed the controller's OWN goNext/goPrev, which is what keeps Suitcase
+  // Mode's auto-advance intact: a swipe is then indistinguishable from an
+  // arrow press, and the dwell-timer cancellation, clip restart, and
+  // pause-survives-navigation behaviour all come along for free (details in
+  // useSwipeNavigation's header).
+  const swipe = useSwipeNavigation({ onNext: goNext, onPrev: goPrev, enabled: isMobile });
+
   if (slides.length === 0) {
     return (
       <FluentProvider theme={theme}>
@@ -182,15 +196,44 @@ export function DeckPlayer({
   return (
     <FluentProvider theme={theme} style={{ colorScheme: "dark", height: "100%", display: "contents" }}>
       <div style={{ position: "fixed", inset: 0, zIndex: 9999, backgroundColor: DECK_BG, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-        {/* stacked is the player's call, not the renderer's: SlideRenderer
-            takes it as a prop so a host rendering slides into a fixed-size
-            stage (poster, thumbnail) can keep the split on a narrow screen. */}
-        <SlideRenderer
-          slide={slides[slideIndex]}
-          slideIndex={slideIndex}
-          isFullscreen={isFullscreen}
-          stacked={isMobile}
-        />
+        {/* The swipe target: one element covering the slide area, reading both
+            directions. Direction is the sign of the gesture's travel, not the
+            half of the screen it started in, so there is no left zone and no
+            right zone to miss.
+
+            A real box rather than display:contents, because touch-action needs
+            one — on a boxless element the browser drops the declaration. The
+            wrapper therefore takes over SlideRenderer's slot in the column and
+            the renderer fills it: same layout, one element deeper.
+
+            touch-action:none because the player never scrolls (it is fixed,
+            inset 0, with the slide scaled to fit). The browser decides a
+            gesture's axis from its first few pixels, so leaving it free to
+            claim a slightly off-axis drag as a pan cancels the pointer stream
+            mid-swipe. If a slide ever becomes scrollable, this needs to become
+            pan-y and the cancel path needs handling. */}
+        <div
+          data-swipe-surface=""
+          style={{
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+            minHeight: 0,
+            overflow: "hidden",
+            touchAction: isMobile ? "none" : undefined,
+          }}
+          {...swipe}
+        >
+          {/* stacked is the player's call, not the renderer's: SlideRenderer
+              takes it as a prop so a host rendering slides into a fixed-size
+              stage (poster, thumbnail) can keep the split on a narrow screen. */}
+          <SlideRenderer
+            slide={slides[slideIndex]}
+            slideIndex={slideIndex}
+            isFullscreen={isFullscreen}
+            stacked={isMobile}
+          />
+        </div>
         <DeckChrome
           slideIndex={slideIndex} slides={slides} deckId={deckId ?? ""}
           isFullscreen={isFullscreen} goNext={goNext} goPrev={goPrev}
