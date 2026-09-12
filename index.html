@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Connected Deck — slides that are live components, not screenshots</title>
+    <meta
+      name="description"
+      content="A presentation engine that renders live, connected React components inside your slides. A slide is just a component, so it can render a real chart, call a real API, or embed an actual piece of your product's UI."
+    />
+    <meta property="og:title" content="Connected Deck" />
+    <meta
+      property="og:description"
+      content="Slides are components. Narration bakes to audio. The whole thing ships as static files."
+    />
+    <meta property="og:type" content="website" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='5' y='11' width='54' height='42' rx='5' fill='none' stroke='%2362e6ff' stroke-width='4'/%3E%3Crect x='16' y='33' width='8' height='12' rx='2' fill='%2362e6ff'/%3E%3Crect x='28' y='24' width='8' height='21' rx='2' fill='%23ffb347'/%3E%3Crect x='40' y='29' width='8' height='16' rx='2' fill='%237ee787'/%3E%3C/svg%3E" />
+    <style>
+      /* Painted before React mounts so there is never a white flash — the
+         launch page is a dark stage (the same night as the sibling engine
+         repos) and a flash of white reads as a broken page. */
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        background: #131022;
+        color: #eae6f6;
+        /* Tells the browser to render its OWN chrome dark — scrollbars, form
+           controls, the overscroll gutter. FluentProvider themes the components
+           it renders and cannot reach any of that. */
+        color-scheme: dark;
+      }
+
+      /* PORTALS TOO. Fluent renders its drawer and sheets into a portal
+         outside #root, so a rule scoped to html/body never reaches a portal's
+         own scroll container. */
+      * {
+        color-scheme: dark;
+      }
+
+      /* WebKit still wants explicit colours: `color-scheme` alone leaves Chrome
+         with its default scrollbar on some platforms. */
+      ::-webkit-scrollbar {
+        width: 12px;
+        height: 12px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #131022;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #282344;
+        border-radius: 6px;
+        border: 3px solid #131022;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #3a3358;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

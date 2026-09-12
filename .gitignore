@@ -1,0 +1,32 @@
+node_modules/
+dist/
+dist-ssr/
+coverage/
+
+*.local
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+.DS_Store
+Thumbs.db
+
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+.env
+.env.local
+.env.*.local
+
+# NOTE: public/voices/ is deliberately NOT ignored. The committed mp3s are what
+# let a visitor hear a deck with no Azure key and no server running, so they're
+# a shipped asset rather than a build artifact. Delete a file to force that
+# slide to re-synthesize on the next bake.

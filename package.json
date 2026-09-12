@@ -1,0 +1,60 @@
+{
+  "name": "connected-deck",
+  "version": "0.1.0",
+  "description": "A presentation engine that renders live, connected React components inside your slides instead of static images.",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "dev": "concurrently -n vite,narrate -c blue,green \"vite\" \"node server/index.js\"",
+    "dev:client": "vite",
+    "dev:server": "node server/index.js",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint src",
+    "lint:fix": "eslint src --fix",
+    "type-check": "tsc --noEmit",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "bake": "vite-node scripts/bake-voices.ts --"
+  },
+  "dependencies": {
+    "@fluentui/react-components": "^9.48.0",
+    "@fluentui/react-icons": "^2.0.325",
+    "express": "^5.2.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-markdown": "^9.0.1",
+    "react-router-dom": "^6.23.1",
+    "recharts": "^3.8.1",
+    "remark-gfm": "^4.0.0"
+  },
+  "devDependencies": {
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/react": "^16.3.2",
+    "@types/jest": "^29.5.14",
+    "@types/node": "22.20.1",
+    "@types/react": "^18.2.45",
+    "@types/react-dom": "^18.2.18",
+    "@vitejs/plugin-react": "^4.2.1",
+    "concurrently": "^10.0.3",
+    "eslint": "^9.39.4",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "prettier": "^3.8.3",
+    "ts-jest": "^29.4.12",
+    "typescript": "^5.3.3",
+    "typescript-eslint": "^8.60.1",
+    "vite": "^5.0.8",
+    "vite-node": "^6.0.0"
+  },
+  "overrides": {
+    "postcss": "8.5.17"
+  },
+  "engines": {
+    "node": "^20.19.0 || ^22.12.0"
+  }
+}
