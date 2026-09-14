@@ -41,11 +41,14 @@ Say/Context/Beat, and one genuinely live component (a ticking clock, mounted in
 a slide, doing what a screenshot can't).
 
 **Trailer — The Connected Deck Universe** is the ceiling: nineteen slides of
-hand-written CSS and SVG. No images, no video, no animation library, no assets
-of any kind — open `src/decks/connected-deck-trailer.tsx` and everything you
-just watched is in that one file. It's also the deck that explains the app,
-because Sofa Mode and Podium Mode are characters in it before they're a switch
-you flip.
+hand-written CSS and SVG, every atom a strand of light under some tension —
+pulled taut, snapped, frayed, braided. No images, no video, no animation
+library, no assets of any kind — open `src/decks/connected-deck-trailer.tsx`
+and every frame you just watched is drawn in that one file. The one figure it
+stages, the cat, is imported from `cat-dev.tsx`, which is the point of that
+file. It's also the deck that explains the app, because Sofa Mode and
+Presenter Mode (the Podium switch) are characters in it before they're a
+switch you flip.
 
 The gap between them is the point. Same engine, same contract, wildly different
 ceilings.

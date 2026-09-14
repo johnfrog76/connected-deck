@@ -8,7 +8,7 @@ import { CatDev } from "./decks/cat-dev";
 // palette as literals: this is art, not chrome. Fluent tokens style the page
 // AROUND these scenes; nothing in here reads the theme.
 //
-// The palette is the trailer's (connected-deck-trailer.tsx), plus a bakelite
+// The palette is the first trailer's (git history of connected-deck-trailer.tsx), plus a bakelite
 // register for the plug and the suitcase: the logo is a vintage two-prong lamp
 // plug — brown bakelite body, brass prongs, cloth-covered cord — because
 // "connected" is the product name and a plug is the least abstract way to say
