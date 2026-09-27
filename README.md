@@ -530,3 +530,10 @@ view a deck or hear it narrated. The one optional server is `server/index.js`
 ## License
 
 MIT
+
+## Issues
+
+Bugs and improvements are **GitHub issues on this repo** -- a product owns its
+issues. Fixes and updates are still driven from the css-wasteland-app studio
+(this repo shares code by copy, on purpose), but what needs doing is filed and
+tracked here, where the product lives.
