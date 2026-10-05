@@ -186,9 +186,8 @@ export function Lockup() {
 }
 
 // ── Hero backdrop — the vocal-cloud sky behind the masthead ──────────────────
-// The Wasteland front door's register: near-black, a few star specks, vapor
-// glows low in the mix. Sits behind the masthead text; pointer-events off so
-// it's pure weather.
+// Near-black, a few star specks, vapor glows low in the mix. Sits behind the
+// masthead text; pointer-events off so it's pure weather.
 const HERO_STARS = [
   { left: "8%", top: "22%", delay: 0 },
   { left: "22%", top: "62%", delay: 1.4 },

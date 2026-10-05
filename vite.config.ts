@@ -19,8 +19,8 @@ export default defineConfig({
   server: {
     port: 5174,
     proxy: {
-      // Narration only — see server/index.js and README.md's "Presenter mode
-      // & narration" section. Everything else in the app runs with no backend.
+      // Narration only — see server/index.js and docs/server.md, "The narrate
+      // server". Everything else in the app runs with no backend.
       "/api": {
         target: "http://localhost:5175",
         changeOrigin: true,

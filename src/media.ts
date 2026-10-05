@@ -1,6 +1,6 @@
-// The mobile-first breakpoint scheme (design/wasteland-mobile-wbs.md).
+// The mobile-first breakpoint scheme.
 //
-// THE CONTRACT (John's): the BASE declarations are the phone (0–575px) —
+// THE CONTRACT: the BASE declarations are the phone (0–575px) —
 // mobile styles need no query at all. The desktop styles, which look good
 // and stay textually unchanged, cascade from a min-width block below them:
 //

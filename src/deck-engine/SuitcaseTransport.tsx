@@ -11,12 +11,8 @@ import { PauseFilled, PlayFilled } from "@fluentui/react-icons";
 // glanceable answer to "when does the next slide come?" without surrendering
 // the one-big-button contract.
 //
-// DUPLICATED FILE — this component exists byte-identical in two repos
-// (prompts web/src/app/deck-components and connected-deck src/deck-engine),
-// same contract as useSlideNarration itself: the repos share no package, they
-// sync by porting, so this file must stay self-contained. Props only — no
-// context, no ambient hooks, no imports beyond React and Fluent — and any
-// change made in one copy gets made in the other.
+// Self-contained on purpose: props only — no context, no ambient hooks, no
+// imports beyond React and Fluent.
 //
 // Presentation only, by design. It owns no playback state: `paused` and
 // `onTogglePause` arrive from the host's narration controls, and progress is
@@ -51,7 +47,7 @@ export function SuitcaseTransport({
   const [progress, setProgress] = useState(0);
 
   // Poll rather than subscribe: the getter reads the live element on demand,
-  // so there's no event plumbing to keep in sync across two repos, and an
+  // so there's no event plumbing to maintain, and an
   // unmounted transport (paging mode) costs nothing at all.
   //
   // Nothing here knows about viewports on purpose. Suitcase Mode is currently

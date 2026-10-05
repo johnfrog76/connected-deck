@@ -48,9 +48,9 @@ export interface Deck {
    * Called on each render rather than held as a static array, so a slide can
    * close over what it needs at mount time.
    *
-   * Takes no arguments deliberately — upstream this carries an active-org slug
-   * for org-scoped sample data, which is a host concept with no meaning in a
-   * standalone repo. See README, "Where this came from".
+   * Takes no arguments. A deck that needs live data reads it from the host's
+   * own runtime inside its components, rather than having it threaded through
+   * the interface every other deck has to implement.
    */
   slides: () => Slide[];
 }
