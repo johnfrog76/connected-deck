@@ -175,8 +175,10 @@ harder to lift out.
 
 ### Two hooks own two browser APIs
 
-Nothing else in the app calls `matchMedia` or `localStorage`. Components ask
-semantic questions and never see the mechanism:
+Nothing else in the app calls `matchMedia`, and nothing else calls
+`localStorage` except the launch page's in-browser checks (`deckChecks.ts`),
+which write a scratch key to test the read path. Components ask semantic
+questions and never see the mechanism:
 
 ```tsx
 const { isMobile } = useViewport();              // not a media string
@@ -190,9 +192,13 @@ the private-mode guard — Safari *throws* on `localStorage` in private mode, an
 the version of this code that hand-rolled each preference had modules that
 forgot the `try/catch`.
 
-Both chromes and `SlideRenderer` are pure props-in — no context, no ambient
-hooks — so you can import `DeckChromeMobile` directly and decide the breakpoint
-yourself.
+Both chromes and `SlideRenderer` read no context themselves — everything they
+show arrives as props — so you can import `DeckChromeMobile` directly and decide
+the breakpoint yourself. One exception travels with it: the mobile chrome's
+settings sheet renders the shared `SettingsForm`, which reads the presenter-mode,
+voice-preference and viewport contexts. Mount it inside those providers, as
+`App.tsx` does, or the sheet's stored-preference rows fall back to the
+contexts' defaults.
 
 For where narration comes from, see [Narration](narration.md); for what the
 tests pin about all of the above, see [Tests](testing.md).

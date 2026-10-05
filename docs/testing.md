@@ -13,8 +13,9 @@ notes surface), which narration source each host reads from, the voice-coverage
 rules, and the player's neutral default theme. Those are the invariants a
 refactor regresses silently, so they're the ones worth a headless assertion.
 
-Suitcase Mode gets its own block, because every bug this feature has had lived
-in a state nobody thinks to open by hand:
+Suitcase Mode gets its own cases, spread across the player's test blocks,
+because every bug this feature has had lived in a state nobody thinks to open
+by hand:
 
 - a deck with **nothing baked and no synthesizer** — the transport button once
   rendered anyway, dead, having replaced the paging arrows, which left a reader

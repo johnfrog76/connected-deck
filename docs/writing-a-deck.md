@@ -137,7 +137,8 @@ src/
     cat-dev.tsx           a character the trailer casts, and a worked example
                           of the only dependency a slide really has
   shared/
-    usePersistedState.ts  THE localStorage layer — nothing else touches it
+    usePersistedState.ts  THE localStorage layer — only the in-browser
+                          checks (deckChecks.ts) touch it directly too
   LaunchPage.tsx          deck list + the Sofa/Podium switch + the gear
   PresentationDeck.tsx    /deck/:deckId — resolves mode, mounts DeckPlayer
   SettingsForm.tsx        the settings themselves: rows, copy, gating rules
