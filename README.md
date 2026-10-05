@@ -81,31 +81,10 @@ React 18, TypeScript, Vite, Fluent UI v9, React Router. No backend is needed to
 view a deck or hear it narrated. The one optional server is `server/index.js`
 (Express → Azure Speech), and only for baking your own audio.
 
-## Where this came from
-
-The engine was extracted from a larger private toolkit, where it drives a
-library of decks across two host apps. The copies are kept in sync by periodic
-re-baseline, not by a shared package — so if you're comparing them, expect the
-engine files to match and the surrounding app not to.
-
-`Deck.slides()` takes no arguments, and that's worth a note because it briefly
-didn't match. Upstream it used to carry an active-organization slug, for decks
-rendering org-scoped sample data. Dropping it here wasn't a simplification for
-the public repo — it was a judgment that a deck shouldn't have to know about
-orgs at all, and upstream has since removed it too. A deck that genuinely needs
-live host data should read it from the host's own runtime rather than have it
-threaded through the interface every other deck has to implement.
-
-The two `Deck` types now agree. If you ever see them drift again, that's a
-question to settle, not a difference to preserve.
-
 ## License
 
 MIT — see [LICENSE](LICENSE).
 
 ## Issues
 
-Bugs and improvements are **GitHub issues on this repo** -- a product owns its
-issues. Fixes and updates are still driven from the css-wasteland-app studio
-(this repo shares code by copy, on purpose), but what needs doing is filed and
-tracked here, where the product lives.
+Bugs and improvements are GitHub issues on this repository.

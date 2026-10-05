@@ -16,9 +16,11 @@ import type { DeckChromeProps } from "./deckChromeShared";
 // numbers, no matchMedia. That all lives in viewport.tsx, which is what lets
 // you re-point the breakpoints without touching a single component.
 //
-// Taking just one chrome: both siblings are pure props-in, no context, no
-// ambient hooks. Import DeckChromeMobile directly and hand it the same props if
-// you'd rather decide the breakpoint yourself.
+// Taking just one chrome: both read everything they show from props. Import
+// DeckChromeMobile directly and hand it the same props if you'd rather decide
+// the breakpoint yourself. One exception travels with it: the mobile chrome's
+// settings sheet renders SettingsForm, which reads the presenter-mode,
+// voice-preference and viewport contexts, so mount it inside those providers.
 
 export type { NarrationControls, DeckChromeProps } from "./deckChromeShared";
 

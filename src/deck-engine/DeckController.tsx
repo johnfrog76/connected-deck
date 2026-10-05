@@ -5,8 +5,8 @@ import type { Slide } from "../decks/types";
 /**
  * useDeckController — owns all presentation state and side effects for a deck:
  * slide navigation, fullscreen, keyboard control, and the cross-tab
- * BroadcastChannel sync (spec §3.2). Extracted from PresentationDeck so the
- * renderer can stay presentational.
+ * BroadcastChannel sync. Kept separate from PresentationDeck so the renderer
+ * can stay presentational.
  *
  * `onAfterSlideNavCallback` is the one extension point a host gets into
  * navigation: it reports that the visitor is now looking at slide N of M,
@@ -121,7 +121,7 @@ export function useDeckController(
     return () => window.removeEventListener("keydown", handleKey);
   }, [goNext, goPrev, exitDeck, toggleFullscreen]);
 
-  // BroadcastChannel (spec §3.2) — open/close keyed on the deck. Also accepts
+  // BroadcastChannel — open/close keyed on the deck. Also accepts
   // "goto" messages from the presenter-notes window so it can drive the deck
   // (paging) without needing to be the focused/visible window.
   useEffect(() => {

@@ -5,7 +5,7 @@
 // identical text on every replay just burns Azure quota. Cache key is
 // (deck, slide, voice) -> a committed mp3 under public/voices/, which Vite
 // serves statically in both dev and the production build — a cache hit never
-// touches Azure. See README.md's "Presenter mode & narration" section.
+// touches Azure. See docs/server.md, "Re-baking in your own voice".
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -44,7 +44,8 @@ async function loadDotEnv() {
 await loadDotEnv();
 
 const DEFAULT_VOICE = "en-US-JennyNeural";
-// Curated voice shortlist — must match NARRATION_VOICES in PresenterNotes.tsx.
+// Curated voice shortlist — must match NARRATION_VOICES in
+// src/deck-engine/narrationConstants.ts.
 // Requests are validated against it so an unknown voice can't reach Azure or
 // the filesystem.
 const ALLOWED_VOICES = new Set(["en-US-JennyNeural", "en-US-BrianNeural"]);

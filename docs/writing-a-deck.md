@@ -169,6 +169,6 @@ the presenter popout.
   `SlideRenderer` deal only in `ReactNode`.
 - **The next-slide preview renders at a 1920×1080 internal canvas** and scales
   down, so slide content authored for a wide stage doesn't clip in the preview.
-
-Why `Deck.slides()` takes no arguments is told in the README,
-["Where this came from"](../README.md#where-this-came-from).
+- **`Deck.slides()` takes no arguments.** A deck that needs live data reads it
+  from the host's own runtime inside its components, rather than having it
+  threaded through the interface every other deck has to implement.

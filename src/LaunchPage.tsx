@@ -52,8 +52,7 @@ const useStyles = makeStyles({
   // Mobile-first throughout this file: the BASE declaration is the phone, and
   // the desktop values cascade from a MEDIA.sm block below them. See media.ts
   // for why that order is the contract rather than a preference.
-  // The family's night stage, not Fluent's neutral grey: the same ground the
-  // sibling engine repos sit on, so the three read as one family.
+  // The night stage, not Fluent's neutral grey.
   page: {
     minHeight: "100vh",
     backgroundColor: art.bg,
@@ -323,8 +322,8 @@ const useStyles = makeStyles({
     color: tokens.colorNeutralForeground3,
     lineHeight: tokens.lineHeightBase500,
   },
-  // The family footer, same three beats as the sibling repos: the licence,
-  // the source link, one line on what this is and is not.
+  // The footer, three beats: the licence, the source link, one line on what
+  // this is and is not.
   footer: {
     marginTop: tokens.spacingVerticalXXL,
     paddingTop: "24px",
