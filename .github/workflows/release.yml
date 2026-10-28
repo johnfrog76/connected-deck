@@ -1,0 +1,24 @@
+name: release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      # The notes are the changelog's section for this version. The script
+      # fails the run, naming the missing section, when there is none, so a
+      # tag without notes never becomes a release.
+      - run: node scripts/release-notes.mjs "$GITHUB_REF_NAME" > release-notes.md
+      - run: gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --notes-file release-notes.md --verify-tag
+        env:
+          GH_TOKEN: ${{ github.token }}
