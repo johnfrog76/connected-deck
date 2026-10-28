@@ -81,6 +81,25 @@ React 18, TypeScript, Vite, Fluent UI v9, React Router. No backend is needed to
 view a deck or hear it narrated. The one optional server is `server/index.js`
 (Express → Azure Speech), and only for baking your own audio.
 
+## Releases
+
+What changed in each version is in [CHANGELOG.md](CHANGELOG.md), and the same
+section is the notes of that version's
+[GitHub Release](https://github.com/johnfrog76/connected-deck/releases). Any
+change a host embedding the player would notice adds one line under
+**Unreleased** in the same pull request, under Added, Changed, Fixed or Removed.
+
+The version is semantic, picked by what a host with the player mounted has to
+do: change its page or its options, major; nothing, and it finds the new thing
+when it looks, minor; nothing, and something stopped being broken, patch.
+
+A release is one small pull request on `main`: rename **Unreleased** to the
+version and the date, open a fresh **Unreleased** above it, and set the same
+version in `package.json`. Once it is merged, push the tag, `v` followed by the
+version. The release workflow builds the GitHub Release from that changelog
+section and fails, naming the missing section, if there is none. To preview the
+notes locally: `node scripts/release-notes.mjs v<version>`.
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
