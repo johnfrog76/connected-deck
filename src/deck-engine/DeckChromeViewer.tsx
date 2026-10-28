@@ -8,6 +8,8 @@ import {
   tokens,
 } from "@fluentui/react-components";
 import {
+  ChevronLeftRegular,
+  ChevronRightRegular,
   DismissRegular,
   SettingsRegular,
   Speaker2Filled,
@@ -63,7 +65,9 @@ import { SettingsForm } from "../SettingsForm";
 
 const TOUCH = { minHeight: `${TOUCH_TARGET}px`, minWidth: `${TOUCH_TARGET}px` } as const;
 // Paging arrows are the most-pressed controls, so they get extra width and a
-// bigger glyph than the square minimum.
+// bigger glyph than the square minimum. Thin chevrons rather than ← →: either
+// side of the ring they read as quiet skip marks, and the ring stays the
+// heaviest thing in the middle.
 const TOUCH_PAGE = { ...TOUCH, minWidth: `${TOUCH_ARROW_WIDTH}px`, fontSize: "20px" } as const;
 // Exit's glyph is bare TEXT, not an icon component, so a 44px box left it
 // drawing a ~14px ✕ floating in a big empty target. Sized to match the arrows
@@ -111,10 +115,9 @@ export function DeckChromeViewer({
       disabled={slideIndex === 0}
       onClick={goPrev}
       aria-label="Previous slide"
+      icon={<ChevronLeftRegular />}
       style={compact ? TOUCH_PAGE : undefined}
-    >
-      ←
-    </Button>
+    />
   );
   const nextButton = (
     <Button
@@ -123,10 +126,9 @@ export function DeckChromeViewer({
       disabled={slideIndex === slides.length - 1}
       onClick={goNext}
       aria-label="Next slide"
+      icon={<ChevronRightRegular />}
       style={compact ? TOUCH_PAGE : undefined}
-    >
-      →
-    </Button>
+    />
   );
 
   const gap = `${viewerBarGap(compact)}px`;
