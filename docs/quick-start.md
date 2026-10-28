@@ -41,7 +41,7 @@ ceilings.
 
 ## Where next
 
-- [Watching a deck](player.md) — Sofa and Podium, Suitcase Mode, and the phone layout.
+- [Watching a deck](player.md) — Sofa, Audiobook and Podium, and the phone layout.
 - [Writing a deck](writing-a-deck.md) — the slide-authoring contract and how to add your own.
 - [Narration](narration.md) — how the committed audio works.
 - [The narrate server](server.md) — re-baking narration in your own voice.

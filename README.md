@@ -26,11 +26,11 @@ A slide is just a React component, so it can render a live chart, call a real
 API, or embed an actual piece of your product's UI — and read itself aloud from
 committed audio while it does.
 
-What you get is a player with two ways to watch: **Sofa**, where the deck reads
-itself to you, and **Podium**, where your notes, a timer and the next slide open
-in a second window. A deck written for a laptop plays on a phone with no
-re-authoring, and **Suitcase Mode** lets it play itself like an audiobook. Two
-decks ship with it — a five-slide starter to copy, and a nineteen-slide trailer
+What you get is a player with three modes: **Sofa**, where you watch and page
+through a deck while it reads each slide to you; **Audiobook**, where it reads
+itself aloud and turns its own slides, phone in a pocket; and **Podium**, where
+your notes, a timer and the next slide open in a second window. A deck written
+for a laptop plays on a phone with no re-authoring. Two decks ship with it — a five-slide starter to copy, and a nineteen-slide trailer
 to show how far the same contract goes.
 
 It is for engineers who give technical talks and would rather show the thing
@@ -58,7 +58,7 @@ you can, because it _is_ the real thing, not a picture of it.
 | Page | What it covers |
 | --- | --- |
 | [Quick start](docs/quick-start.md) | Install, run, and the two decks that ship with it |
-| [Watching a deck](docs/player.md) | Sofa and Podium, Suitcase Mode, the phone layout, progress seams |
+| [Watching a deck](docs/player.md) | Sofa, Audiobook and Podium, the two bars, the host's options, the phone layout, progress seams |
 | [Writing a deck](docs/writing-a-deck.md) | The slide-authoring contract, notes, `makeSlide`, adding your own deck, a map of the source |
 | [Narration](docs/narration.md) | Committed audio, the filename contract, the two narration sources |
 | [The narrate server](docs/server.md) | Re-baking narration in your own voice with Azure Speech |

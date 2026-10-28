@@ -9,6 +9,38 @@ nothing and something stopped being broken.
 
 ## [Unreleased]
 
+### Added
+
+- **Audiobook mode**: the player reads a deck aloud and turns its own slides,
+  advancing when each slide's narration ends and stopping at the last slide.
+  Choose it on the launch page or in the player's settings sheet, at any
+  width. Previous and next sit either side of a play ring, so a slide can be
+  skipped without leaving the mode; pause holds the slide.
+- `DeckPlayer` takes `audiobook` to turn the mode on and `onAudiobookChange` to
+  let a viewer choose Sofa or Audiobook from the settings sheet.
+- `DeckPlayer` takes `offeredModes`, the modes a host offers. Pass
+  `["audience"]` and Podium is absent on every screen; the default offers both.
+
+### Changed
+
+- Two bars. Sofa and Audiobook mode share the viewer's bar at every width:
+  Exit, then previous and next around the counter or the play ring, centred on
+  the screen, then settings, fullscreen and the sound. Podium keeps the
+  presenter's bar, everything inline, and now carries the sound and the voice
+  dropdown too, opening silent.
+- The settings sheet behind the gear is on the viewer's bar at every width,
+  not only on a phone, and holds the mode, narration and the voice. The bar's
+  sound button and the sheet's narration row are one setting.
+- The player never draws Podium at phone width, even when a host asks for it.
+- The launch page and the documentation describe the three modes — Sofa,
+  Audiobook and Podium — and the launch page shows Audiobook on a phone.
+
+### Deprecated
+
+- `DeckPlayer`'s `suitcase` prop, the old name for `audiobook`. A host that
+  still passes it gets Audiobook mode. Suitcase Mode is now Audiobook mode
+  everywhere it is named; a visitor's stored choice carries over.
+
 ## [0.1.0] - 2026-10-28
 
 The first release: the engine as it stands on `main`.

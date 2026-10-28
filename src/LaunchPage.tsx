@@ -13,7 +13,12 @@ import {
 import { ArrowRightRegular, Clock12Regular, SettingsRegular } from "@fluentui/react-icons";
 import { SettingsDrawer } from "./SettingsDrawer";
 import { Checks } from "./Checks";
-import { computeAtPodium, computeSofaActive, computeSuitcaseActive } from "./settingsRules";
+import {
+  VIEWING_MODES,
+  computeAtPodium,
+  computeAudiobookActive,
+  computeSofaActive,
+} from "./settingsRules";
 import { MEDIA } from "./media";
 import { art } from "./theme";
 import { DECKS } from "./decks/index";
@@ -24,13 +29,13 @@ import { usePresenterMode } from "./presenterMode";
 import { useVoicePreference } from "./voicePreference";
 import { useViewport } from "./viewport";
 import {
+  AudiobookScene,
   HeroBackdrop,
   LaunchKeyframes,
   Lockup,
   PodiumScene,
   SCENE_TINTS,
   SofaScene,
-  SuitcaseScene,
 } from "./LaunchArt";
 import type { Deck } from "./decks/types";
 import type { ReactNode } from "react";
@@ -477,18 +482,18 @@ function DeckRow({ deck, presenter }: { deck: Deck; presenter: boolean }) {
 export function LaunchPage() {
   const styles = useStyles();
   const { presenter, setPresenter } = usePresenterMode();
-  const { suitcaseMode, setSuitcaseMode, narrateByDefault } = useVoicePreference();
+  const { audiobookMode, setAudiobookMode, narrateByDefault } = useVoicePreference();
   const { isMobile } = useViewport();
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   // Effective state, same rules as SettingsForm — imported from settingsRules,
   // not re-derived here, so the two surfaces can't drift the way they used to.
-  // Podium needs a window wide enough for the notes popout, suitcase needs
-  // sofa AND voice. The cards show where you actually ARE, not just what's
-  // stored.
+  // Podium needs a window wide enough for the notes popout, Audiobook needs
+  // Sofa's player AND voice. The cards show where you actually ARE, not just
+  // what's stored.
   const atPodium = computeAtPodium(presenter, isMobile);
-  const suitcaseActive = computeSuitcaseActive(atPodium, suitcaseMode, narrateByDefault);
-  const sofaActive = computeSofaActive(atPodium, suitcaseActive);
+  const audiobookActive = computeAudiobookActive(atPodium, audiobookMode, narrateByDefault);
+  const sofaActive = computeSofaActive(atPodium, audiobookActive);
 
   return (
     <div className={styles.page}>
@@ -528,8 +533,8 @@ export function LaunchPage() {
           <div className={styles.stageHead}>
             <h1 className={styles.stageTitle}>How do you want to watch?</h1>
             <span className={styles.stageHint}>
-              Three ways to play a deck. Pick one — it sticks in this browser, and the gear
-              holds the fine print.
+              Three ways to play a deck: watch it, listen to it, or present it. Pick one —
+              it sticks in this browser, and the gear holds the fine print.
             </span>
           </div>
           <div className={styles.stageGrid}>
@@ -537,13 +542,13 @@ export function LaunchPage() {
               scene={<SofaScene />}
               tint={SCENE_TINTS.sofa}
               name="Sofa Mode"
-              blurb="Read to me. Voice and mute live in the player — lean back and watch."
+              blurb={VIEWING_MODES.sofa.line}
               status={sofaActive ? "● On now" : "Tap to switch"}
               active={sofaActive}
               onSelect={() => {
                 // Order matters to nobody but the reader: sofa is the absence
                 // of the other two, so clear them both.
-                setSuitcaseMode(false);
+                setAudiobookMode(false);
                 setPresenter(false);
               }}
             />
@@ -551,7 +556,7 @@ export function LaunchPage() {
               scene={<PodiumScene />}
               tint={SCENE_TINTS.podium}
               name="Podium Mode"
-              blurb="I&rsquo;m presenting. Notes, a timer, and the next slide in a second window."
+              blurb={VIEWING_MODES.podium.line}
               status={
                 isMobile
                   ? "Needs a wider window — notes pop out beside the deck."
@@ -564,24 +569,18 @@ export function LaunchPage() {
               onSelect={() => setPresenter(true)}
             />
             <ModeCard
-              scene={<SuitcaseScene />}
-              tint={SCENE_TINTS.suitcase}
-              name="Suitcase Mode (mobile)"
-              blurb="Decks play themselves — narration ends, next slide starts. Headphones on."
-              status={
-                suitcaseActive
-                  ? isMobile
-                    ? "● On now"
-                    : "● On — auto-advance kicks in for mobile devices"
-                  : "Tap to switch — turns Voice on"
-              }
-              active={suitcaseActive}
+              scene={<AudiobookScene />}
+              tint={SCENE_TINTS.audiobook}
+              name="Audiobook Mode"
+              blurb={VIEWING_MODES.audiobook.line}
+              status={audiobookActive ? "● On now" : "Tap to switch — turns narration on"}
+              active={audiobookActive}
               onSelect={() => {
-                // Suitcase implies sofa and voice. Setting the parents it
+                // Audiobook implies sofa and voice. Setting the parents it
                 // needs is the user's explicit act here — the opposite of a
                 // dependent setting overriding them on its own.
                 setPresenter(false);
-                setSuitcaseMode(true);
+                setAudiobookMode(true);
               }}
             />
           </div>

@@ -1,30 +1,33 @@
-import { DeckChromeDesktop } from "./DeckChromeDesktop";
-import { DeckChromeMobile } from "./DeckChromeMobile";
-import { useViewport } from "../viewport";
+import { DeckChromePresenter } from "./DeckChromePresenter";
+import { DeckChromeViewer } from "./DeckChromeViewer";
 import type { DeckChromeProps } from "./deckChromeShared";
 
-// Picks a chrome. That's all this does.
+// Picks a bar. That's all this does.
 //
-// The desktop and mobile chromes are SEPARATE COMPONENTS rather than one file
-// full of `compact ? a : b`, because they solve different problems: desktop
-// chrome is projected in front of a room and should disappear, mobile chrome is
-// operated by one thumb and should be findable without looking. A single
-// component with forks throughout serves neither well, and makes both harder to
-// lift into another project.
+// The two bars are SEPARATE COMPONENTS rather than one file full of
+// `presenter ? a : b`, because they do different jobs: the presenter's bar puts
+// every control in reach of someone running a talk, the viewer's bar gives
+// someone watching or listening one transport on the screen's centre and puts
+// the rest behind a gear. A single component with forks throughout serves
+// neither well, and makes both harder to lift into another project.
 //
-// This file asks `isMobile` and nothing else — no media strings, no breakpoint
-// numbers, no matchMedia. That all lives in viewport.tsx, which is what lets
-// you re-point the breakpoints without touching a single component.
+// The bar follows the MODE, not the width. DeckPlayer decides the mode, and it
+// never picks Podium at the phone width, so the presenter's bar never has to
+// fold; the viewer's bar is one bar at every width, sized for a thumb when
+// `compact` says so.
 //
-// Taking just one chrome: both read everything they show from props. Import
-// DeckChromeMobile directly and hand it the same props if you'd rather decide
-// the breakpoint yourself. One exception travels with it: the mobile chrome's
-// settings sheet renders SettingsForm, which reads the presenter-mode,
-// voice-preference and viewport contexts, so mount it inside those providers.
+// Taking just one bar: both read everything they show from props. Import
+// DeckChromeViewer directly and hand it the same props if you only ever play
+// to a viewer. One exception travels with it: its settings sheet renders
+// SettingsForm, which reads the presenter-mode, voice-preference and viewport
+// contexts, so mount it inside those providers.
 
-export type { NarrationControls, DeckChromeProps } from "./deckChromeShared";
+export type { ChromeBar, NarrationControls, DeckChromeProps } from "./deckChromeShared";
 
 export function DeckChrome(props: DeckChromeProps) {
-  const { isMobile } = useViewport();
-  return isMobile ? <DeckChromeMobile {...props} /> : <DeckChromeDesktop {...props} />;
+  return props.bar === "presenter" ? (
+    <DeckChromePresenter {...props} />
+  ) : (
+    <DeckChromeViewer {...props} />
+  );
 }

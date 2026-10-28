@@ -17,13 +17,22 @@ import type { NarrationVoice } from "./narrationConstants";
 export type { NarrationVoice };
 
 // What a window IS, declared per viewing rather than reconciled from a pile of
-// independent flags.
+// independent flags — and which of the two bars it gets.
 //
-//   "audience" — the sofa. Owns Voice/mute; NO notes surface exists. Absent,
-//     not hidden: a link someone shared with you has nothing to escalate to.
-//   "presenter" — the podium. The notes popout is available, and Voice/mute
-//     leaves the main window because the presenter's own voice is the point.
+//   "audience" — the viewer: Sofa, or Audiobook mode when the host turns it
+//     on. The viewer's bar (Exit | the transport | settings, fullscreen, the
+//     sound) at every width; NO notes surface exists. Absent, not hidden: a
+//     link someone shared with you has nothing to escalate to.
+//   "presenter" — the podium. The presenter's bar, everything inline, with the
+//     notes popout; never at the phone width, where the bar can't fold.
 export type DeckMode = "presenter" | "audience";
+
+/**
+ * The modes a host offers, when it says nothing: both. A host that only ever
+ * plays to a viewer passes ["audience"] and gets no Podium anywhere — no
+ * presenter's bar, no notes button — whatever `mode` says.
+ */
+export const ALL_DECK_MODES: readonly DeckMode[] = ["audience", "presenter"];
 
 // Host facts all arrive as props — nothing here fetches or reads ambient state,
 // which is what lets one player serve both a live narrate server and a folder
@@ -37,7 +46,10 @@ export function DeckPlayer({
   hasApi = false,
   resolveNarrationUrl,
   narrateByDefault = false,
+  audiobook,
   suitcase = false,
+  onAudiobookChange,
+  offeredModes = ALL_DECK_MODES,
   preferredVoiceId,
   onVoicePicked,
   onAfterSlideNavCallback,
@@ -48,22 +60,44 @@ export function DeckPlayer({
   slides: Slide[];
   /** Required, no default: see DeckMode. */
   mode: DeckMode;
+  /**
+   * The modes this host offers (ALL_DECK_MODES by default). Podium is drawn
+   * only where it is offered AND the window is wider than a phone; anything
+   * else plays on the viewer's bar. A host that never presents passes
+   * ["audience"], and locking a player to one mode is just that.
+   */
+  offeredModes?: readonly DeckMode[];
   /** Defaults to this app's BrowserRouter path; a HashRouter host passes "/#/decks". */
   notesUrlBase?: string;
-  /** Pair with resolveNarrationUrl. Ignored in presenter mode. */
+  /** Pair with resolveNarrationUrl. Wired, both bars carry the sound and the voice. */
   voices?: readonly NarrationVoice[];
   /** See voiceCoverage.ts — a live synthesizer means no voice is ever disabled. */
   hasApi?: boolean;
   resolveNarrationUrl?: (slide: Slide, voiceId: string) => string | null;
-  /** Start narrating on arrival instead of waiting for the Voice control. */
+  /**
+   * Start narrating on arrival instead of waiting for the sound control. The
+   * viewer's bar only: Podium opens silent, since a presenter's own voice is
+   * usually the point, and its sound button is there when it isn't.
+   */
   narrateByDefault?: boolean;
   /**
-   * Suitcase Mode: advance when the current slide's narration ends. A host
-   * fact like `mode` — the player is told, and never reads the preference
-   * itself. Ignored in presenter mode, where there's no in-player narration
-   * to end.
+   * Audiobook mode: read the deck aloud and advance when the current slide's
+   * narration ends, stopping at the last slide. A host fact like `mode` — the
+   * player is told, and never reads a preference itself. Turns narration on
+   * with it; ignored in Podium, where a presenter turns their own slides.
+   */
+  audiobook?: boolean;
+  /**
+   * @deprecated The old name for `audiobook`, read only when `audiobook` is
+   * not passed. Pass `audiobook` instead.
    */
   suitcase?: boolean;
+  /**
+   * Choose Sofa (false) or Audiobook (true) from the viewer's settings sheet.
+   * The host stores the choice and passes it back as `audiobook`. Omitted, the
+   * sheet has no mode row: the host has fixed the mode itself.
+   */
+  onAudiobookChange?: (next: boolean) => void;
   /**
    * Which voice this visitor picked, from wherever the host stores it. A
    * DEFAULT only: voiceCoverage honors it just when that voice covers this
@@ -114,6 +148,15 @@ export function DeckPlayer({
 }) {
   const navigate = useNavigate();
   const { isMobile } = useViewport();
+  // The mode this window plays in: Podium only where the host offers it and
+  // never at the phone width (the presenter's bar does not fold). The engine
+  // enforces this itself, so a host that forgets the phone rule can't strand a
+  // phone on a bar it can't use.
+  const playMode: DeckMode =
+    mode === "presenter" && offeredModes.includes("presenter") && !isMobile
+      ? "presenter"
+      : "audience";
+  const audiobookOn = audiobook ?? suitcase;
 
   // A notes popout outlives the mode that opened it. A host can flip presenter
   // off mid-session — PresentationDeck forces audience once the viewport
@@ -126,21 +169,22 @@ export function DeckPlayer({
   // this IS that situation from the popout's point of view — the thing it was
   // attached to is gone. Widen the window again and Podium comes back, so the
   // notes button is there to reopen it.
-  const wasPresenterRef = useRef(mode === "presenter");
+  const wasPresenterRef = useRef(playMode === "presenter");
   useEffect(() => {
     const wasPresenter = wasPresenterRef.current;
-    wasPresenterRef.current = mode === "presenter";
-    if (!wasPresenter || mode === "presenter" || !deckId) return;
+    wasPresenterRef.current = playMode === "presenter";
+    if (!wasPresenter || playMode === "presenter" || !deckId) return;
     const channel = new BroadcastChannel(`connected-deck-${deckId}`);
     channel.postMessage({ type: "deck-closed" });
     channel.close();
-  }, [mode, deckId]);
+  }, [playMode, deckId]);
   const { slideIndex, isFullscreen, goNext, goPrev, toggleFullscreen, exitDeck } =
     useDeckController(slides, deckId, onAfterSlideNavCallback, initialSlideIndex);
 
-  // Mode owns this, not the presence of the props: presenter mode drops
-  // in-player narration even when a host wires it fully.
-  const wantsNarration = mode === "audience" && !!voices?.length && !!resolveNarrationUrl;
+  // In-player narration, wherever the host wired it: the viewer's bar carries
+  // the sound and the sheet, and the presenter's bar carries the sound and the
+  // voice dropdown inline.
+  const wantsNarration = !!voices?.length && !!resolveNarrationUrl;
 
   // Same hook the notes popout mounts, so the two surfaces can't disagree.
   const { voices: surveyedVoices, voiceId, setVoiceId, hasAnyNarration } =
@@ -166,42 +210,43 @@ export function DeckPlayer({
     wantsNarration && hasAnyNarration && currentSlide && voiceId
       ? resolveNarrationUrl!(currentSlide, voiceId)
       : null;
-  // Suitcase Mode is a MOBILE affordance: it exists because paging a 60-slide
-  // deck with a thumb on a bus is miserable, and the mobile chrome trades the
-  // paging arrows for one big play/pause to match. On a wide screen none of
-  // that applies — the desktop chrome shows ordinary paging arrows, so slides
-  // advancing on their own would be a deck moving with nothing on screen
-  // saying why. Resizing a window across the breakpoint therefore has to stop
-  // the auto-advance, not just re-skin the chrome around it.
+  // AUDIOBOOK MODE runs at every width on the viewer's bar, whose counter
+  // gives way to the play ring while it is on: the ring is what says, on any
+  // screen, why the deck is moving on its own, previous and next either side
+  // of it skip a slide without leaving the mode, and the sheet behind the gear
+  // is the way back to paging. Never in Podium: a presenter turns their own
+  // slides.
   //
-  // Gated on the LIVE viewport rather than on a stored flag, so this follows a
-  // resize the moment useViewport re-renders. The preference itself is left
-  // alone: widen a window and narrow it again and Suitcase Mode is still where
-  // you left it, same as Presenter.
-  const suitcaseActive = wantsNarration && suitcase && isMobile;
+  // Gated on the LIVE mode rather than on a stored flag, so narrowing a Podium
+  // window into the viewer's bar picks the mode up, and widening it again
+  // stops the advance. The host's choice itself is left alone.
+  const audiobookActive = wantsNarration && audiobookOn && playMode === "audience";
 
   // goNext already clamps at the last slide, so the deck simply stops
   // advancing when it runs out — no separate "end of deck" state to build.
-  // Held while the mobile settings sheet is open — see onSettingsOpenChange.
+  // Held while the viewer's settings sheet is open — see onSettingsOpenChange.
   // Not `enabled`: suspending leaves narration ON, so the sheet's own switch
   // still reads "Narrated" and playback picks up mid-clip on close.
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   const narration = useSlideNarration({
     url: narrationUrl,
-    enabledDefault: wantsNarration && narrateByDefault,
-    onEnded: suitcaseActive ? goNext : undefined,
+    // Audiobook mode turns narration on with it: a deck that turns its own
+    // slides on a clip's end needs clips to end.
+    enabledDefault:
+      wantsNarration && playMode === "audience" && (narrateByDefault || audiobookOn),
+    onEnded: audiobookActive ? goNext : undefined,
     suspended: settingsOpen,
   });
 
-  // Thumb paging on a phone. Gated on the tier ALONE, not on Suitcase Mode:
-  // a phone-width deck pages by swipe whether it is narrating itself or
-  // showing manual arrows, because the gesture means the same thing either
+  // Thumb paging on a phone. Gated on the tier ALONE, not on the mode: a
+  // phone-width deck pages by swipe whether it is reading itself in Audiobook
+  // mode or paged by hand, because the gesture means the same thing either
   // way. Same live-viewport gate as everything else here, so rotating to
-  // landscape drops it with the rest of the mobile chrome.
+  // landscape drops it with the rest of the phone layout.
   //
-  // Handed the controller's OWN goNext/goPrev, which is what keeps Suitcase
-  // Mode's auto-advance intact: a swipe is then indistinguishable from an
+  // Handed the controller's OWN goNext/goPrev, which is what keeps Audiobook
+  // mode's auto-advance intact: a swipe is then indistinguishable from an
   // arrow press, and the dwell-timer cancellation, clip restart, and
   // pause-survives-navigation behaviour all come along for free (details in
   // useSwipeNavigation's header).
@@ -269,18 +314,21 @@ export function DeckPlayer({
           slideIndex={slideIndex} slides={slides} deckId={deckId ?? ""}
           isFullscreen={isFullscreen} goNext={goNext} goPrev={goPrev}
           toggleFullscreen={toggleFullscreen} onExit={exitDeck}
-          hasNotesSurface={mode === "presenter"}
+          bar={playMode === "presenter" ? "presenter" : "viewer"}
+          compact={isMobile}
+          hasNotesSurface={playMode === "presenter"}
           notesUrlBase={notesUrlBase}
           // "Requires narration in both directions" applies to the SESSION
           // layer too, not just the stored prefs (voicePreference.tsx): the
-          // sheet's Narrated switch drives narration.enabled, and a viewing
-          // declared silent has no clip-ends for Suitcase Mode to advance on.
-          // Without this gate the chrome kept the one-button transport over a
+          // sound button and the sheet's Narrated row drive narration.enabled,
+          // and a viewing declared silent has no clip-ends for Audiobook mode
+          // to advance on. Without this gate the bar kept the play ring over a
           // silent deck — a play control for a mode that could no longer mean
-          // anything, with the paging arrows nowhere. Transport PAUSE is not
-          // this: pause holds playback with narration still on (see
-          // useSlideNarration), so the transport survives its own button.
-          suitcaseMode={suitcaseActive && narration.enabled}
+          // anything. Transport PAUSE is not this: pause holds playback with
+          // narration still on (see useSlideNarration), so the ring survives
+          // its own button.
+          audiobookMode={audiobookActive && narration.enabled}
+          onAudiobookChange={wantsNarration ? onAudiobookChange : undefined}
           onSettingsOpenChange={setSettingsOpen}
           narration={
             wantsNarration

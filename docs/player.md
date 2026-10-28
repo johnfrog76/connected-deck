@@ -1,20 +1,31 @@
 # Watching a deck
 
-This page covers the player: the two ways to watch (Sofa and Podium), Suitcase
-Mode, the phone layout, and the hooks and seams behind them.
+This page covers the player: the three modes (Sofa, Audiobook and Podium), the
+two bars that go with them, the settings sheet, the options a host passes when
+it mounts the player, the phone layout, and the hooks and seams behind them.
 
-## Two ways to watch — Sofa and Podium
+## Three modes — Sofa, Audiobook and Podium
 
-The switch on the launch page decides how a deck opens, and it's the first thing
-you see because it's the thing worth understanding:
+The cards on the launch page decide how a deck opens, and they're the first
+thing you see because they're the thing worth understanding:
 
-- **Sofa** (`mode="audience"`) — read to me. Voice and mute controls live in the
-  player and narrate from committed audio. There is no speaker-notes surface at
-  all — not hidden, *absent*. Nothing to escalate to on a link someone sent you.
+| Mode | What it is for | The bar |
+| --- | --- | --- |
+| **Sofa** | Watching. You page through it yourself; the voice reads each slide if narration is on. | The viewer's bar, the counter between previous and next |
+| **Audiobook** | Listening. The deck reads itself aloud and turns its own slides, phone in a pocket. | The viewer's bar, the play ring between previous and next |
+| **Podium** | Presenting. Notes, a timer and the next slide in a second window. | The presenter's bar, never on a phone |
+
+- **Sofa** (`mode="audience"`) — the plain player. The sound and the settings
+  live in the player and narrate from committed audio. There is no
+  speaker-notes surface at all — not hidden, *absent*. Nothing to escalate to
+  on a link someone sent you.
+- **Audiobook** (`mode="audience"` with `audiobook`) — Sofa's player, reading
+  itself. See [Audiobook mode](#audiobook-mode--a-deck-that-plays-itself).
 - **Podium** (`mode="presenter"`) — give me my notes. The notes button appears
   and opens a second window with your notes, a timer, and a live preview of the
-  next slide. Voice and mute leave the main window, because someone reading
-  from their own notes doesn't want a synthesized voice competing with them.
+  next slide. The deck opens silent, because someone reading from their own
+  notes doesn't usually want a synthesized voice competing with them; the
+  sound and the voice are on the bar for when they do.
 
 Your choice persists per browser. **The URL always wins over the setting**:
 `?present=1` and `?present=0` force a mode for one viewing, so a deck link you
@@ -41,13 +52,39 @@ never had a Podium expectation to be surprised out of.
 Mode is a required prop with no default — `DeckPlayer` makes every caller say
 what a window is, rather than inferring it from which props happen to be wired.
 
-## Suitcase Mode — a deck that plays itself
+## Two bars, each for its job
 
-Behind the gear on the launch page, alongside a Voice switch that starts
-narration the moment a deck opens. Turn **Suitcase Mode** on and a slide's
-narration ending advances to the next one: an audiobook rather than a
-slideshow. Headphones on, phone in a pocket, no fumbling to page a 60-slide
-deck on a bus.
+The bar follows the mode, not the width. There are two, and never a third:
+
+- **The viewer's bar** — Sofa and Audiobook, at every width.
+  `Exit | the transport | settings, fullscreen, the sound`. The transport is
+  previous, the counter and next in Sofa, and previous, the play ring and next
+  in Audiobook mode, so a slide can be skipped without leaving the mode. The
+  bar is three columns, `1fr auto 1fr`, so the transport's centre is the
+  screen's centre at every width rather than the centre of whatever space two
+  groups of different widths leave. `viewerBarLayout.ts` holds that rule and
+  the sizes that keep a phone's groups inside their halves.
+- **The presenter's bar** — Podium only. Exit, previous, the counter, next,
+  the sound, the voice as a dropdown, the notes and fullscreen, all inline,
+  because presenting is the one time every control is wanted at hand. It is
+  understated all the same: it's projected on a wall, so every pixel it takes
+  is one the room isn't spending on the slide.
+
+**The settings sheet** sits behind the viewer's bar's gear, at every width. It
+holds the mode (Sofa or Audiobook), narration on or off, and the voice. The
+bar's sound button and the sheet's narration row are **one setting** — both
+read and flip the same state, so a change in either shows in the other. Podium
+isn't in the sheet: the mode a deck opens in is chosen before it opens.
+
+## Audiobook mode — a deck that plays itself
+
+Choose **Audiobook** on the launch page, or in the settings sheet mid-deck, and
+the deck reads itself aloud and advances when a slide's narration ends: an
+audiobook rather than a slideshow. Headphones on, phone in a pocket, no
+fumbling to page a 60-slide deck on a bus. The play ring pauses and resumes;
+previous and next either side of it skip a slide, and the narration follows;
+swiping on a phone does the same. Choosing Sofa in the sheet hands the bar
+back to the counter.
 
 It waits `SLIDE_DWELL_SECONDS` (5) after each clip before moving — the same
 constant `deckDuration.ts` already uses to estimate a deck's runtime, so a deck
@@ -55,38 +92,41 @@ that plays itself takes as long as the badge on the launch page promised. At
 the last slide it simply stops: `goNext` clamps, so there's no separate
 end-of-deck state to build or get wrong.
 
-**Suitcase Mode requires narration, in both directions.** Turning it on turns
+**Audiobook mode requires narration, in both directions.** Choosing it turns
 narration on; turning narration off turns it off. It advances when a clip
-*ends*, so without narration there is no such event and the setting cannot mean
-anything. An earlier version made this one-directional and let a stale Suitcase
-flag start narration on its own — turn Voice off, open a deck, and it read
+*ends*, so without narration there is no such event and the mode cannot mean
+anything. An earlier version made this one-directional and let a stale flag
+start narration on its own — turn the voice off, open a deck, and it read
 itself aloud anyway. Never let a dependent setting override the setting it
 depends on.
 
 That rule holds at **both layers**, because narration goes quiet at two
 different depths. The stored preferences couple in `voicePreference.tsx`
-(Settings' Voice switch off clears the Suitcase flag). But the in-deck sheet's
-Narrated switch is deliberately *session* state — muting the deck you're
-watching shouldn't rewrite what every future deck does — so the player gates
-the chrome on the live value too: a viewing declared Silent hands the transport
-back to the paging arrows. An earlier version gated only on the stored flag,
-and flipping the sheet to Silent left a play button over a deck that would
-never move, with no way to page by hand.
+(Settings' narration off clears the Audiobook choice). But the in-deck sound
+button and the sheet's Narrated row are deliberately *session* state — muting
+the deck you're watching shouldn't rewrite what every future deck does — so
+the player gates the bar on the live value too: a viewing declared Silent
+hands the ring back to the counter. An earlier version gated only on the
+stored flag, and going Silent left a play button over a deck that would never
+move.
 
-Which is also why **pause is not Silent**. The transport button holds playback
-with narration still on (`paused` in `useSlideNarration`), it doesn't flip the
-mode — if it did, the session gate above would swap the transport for paging
-arrows under the thumb that pressed it. Three distinct quiets, three owners:
+Which is also why **pause is not Silent**. The ring holds playback with
+narration still on (`paused` in `useSlideNarration`), it doesn't flip
+narration off — if it did, the session gate above would swap the ring for the
+counter under the thumb that pressed it. Three distinct quiets, three owners:
 `paused` belongs to the listener, `suspended` (sheet open) to the player, and
-`enabled` — the one that changes what the chrome *is* — to the settings
-surfaces.
+`enabled` — the one that changes what the bar *is* — to the sound button and
+the sheet.
 
-**It's mobile-only, and gated on the live viewport.** The mobile chrome trades
-the paging arrows for one big play/pause; on a wide screen the ordinary arrows
-are right there, so a deck advancing by itself would be moving with nothing on
-screen saying why. Widen a window mid-deck and the auto-advance stops; narrow
-it back and it resumes — including catching up if the clip finished while you
-were wide. The *preference* survives either way.
+**It runs at every width, and never in Podium.** The viewer's bar draws the
+ring on a laptop as on a phone, so a deck moving on its own always has
+something on screen saying why. A presenter turns their own slides, so a
+window widened from a phone into Podium stops the advance; narrowed back, it
+resumes — including catching up if the clip finished while it was wide. The
+*choice* survives either way.
+
+A deck that is not in Audiobook mode behaves as it always has: no autoplay
+unless narration is on, and the voices still there to play a slide by hand.
 
 **These settings deliberately have no URL override**, unlike `?present=`. Mode
 is a property of the *link* — what you meant to share — so it travels. Whether
@@ -103,8 +143,9 @@ Three patterns here worth copying rather than the feature itself:
   implementations once and drifted immediately — different labels for the same
   switch, and one of them enforcing the gating rule wrongly.
 - **The player owns behaviour, hosts own preference.** `narrateByDefault` and
-  `suitcase` arrive as props like `mode` does, and `DeckPlayer` decides what
-  they *do* — so every host gets the viewport gating without knowing about it.
+  `audiobook` arrive as props like `mode` does, and `DeckPlayer` decides what
+  they *do* — so every host gets the Podium and phone gating without knowing
+  about it. See [The host's options](#the-hosts-options).
 - **Two seams for progress, and the engine never persists.**
   `onAfterSlideNavCallback(slideIndex, totalSlides)` fires on arrival at a deck
   and after every move within it, in both modes. That is the whole seam for
@@ -146,11 +187,43 @@ element* — a fresh `new Audio()` per slide starts each one unblessed, so
 narration dies after the first clip on a phone. That's the platform detail most
 worth stealing from this file.
 
+## The host's options
+
+A host embeds the player by mounting `DeckPlayer`. The mode options, all props:
+
+```tsx
+<DeckPlayer
+  deckId={deckId}
+  slides={slides}
+  mode="audience"                      // or "presenter": required, no default
+  offeredModes={["audience"]}          // the modes this host offers; default both
+  audiobook={audiobookOn}              // Audiobook mode, the host's stored choice
+  onAudiobookChange={setAudiobookOn}   // the sheet's Sofa / Audiobook row
+  narrateByDefault={narrateOn}
+  voices={voices}
+  resolveNarrationUrl={resolveUrl}
+/>
+```
+
+- **`offeredModes`** — the modes this host offers. A host that only ever plays
+  to a viewer passes `["audience"]`, and Podium is absent there on every
+  screen: no presenter's bar, no notes button, whatever `mode` says. A host
+  that presents passes both, which is the default. Podium is also never drawn
+  at the phone width, whatever is offered; the player enforces that itself.
+- **`audiobook`** — Audiobook mode for this viewing. It turns narration on with
+  it and is ignored in Podium.
+- **`onAudiobookChange`** — called with `true` or `false` when the viewer
+  picks Audiobook or Sofa in the settings sheet. The host stores the choice and
+  passes it back as `audiobook`. Leave it out and the sheet has no mode row:
+  locking a player to one mode is just a fixed `audiobook` and
+  `offeredModes={["audience"]}`.
+- **`suitcase`** — deprecated, the old name for `audiobook`. It still plays as
+  Audiobook when `audiobook` is not passed; pass `audiobook` instead.
+
 ## On a phone
 
 A deck opens on a phone as a **stacked** slide — art in a band on top, copy
-below as a scrolling read — and the chrome swaps to a different component
-rather than a restyled one.
+below as a scrolling read — and the viewer's bar sizes itself for a thumb.
 
 The art doesn't reflow. It renders into the authored 768×720 panel and
 transform-scales to fit the band, so **a deck written for a laptop works on a
@@ -159,19 +232,21 @@ collapsing into a column. (One accepted tradeoff: `vw`-sized text inside art
 resolves against the real viewport and lands smaller than `px` art at that
 scale.)
 
-`DeckChromeDesktop` and `DeckChromeMobile` are **separate components**, not one
-file full of `compact ? a : b`, because they solve different problems:
+The two bars are **separate components**, `DeckChromePresenter` and
+`DeckChromeViewer`, not one file full of `presenter ? a : b`, because they do
+different jobs:
 
-|                | Desktop                        | Mobile                          |
-| -------------- | ------------------------------ | ------------------------------- |
-| Who's looking  | a room, via a projector        | one person, one thumb           |
-| Controls       | small, subtle, inline          | 44px targets, safe-area insets  |
-| Voice picker   | a dropdown, collapsed          | radios in a bottom sheet        |
-| Extra chrome   | none — it should disappear     | a gear that names what's inside |
+|                | Presenter's bar (Podium)       | Viewer's bar (Sofa, Audiobook)    |
+| -------------- | ------------------------------ | --------------------------------- |
+| Who's looking  | a room, via a projector        | one person, maybe one thumb       |
+| Controls       | small, subtle, all inline      | three columns, the transport centred |
+| Voice picker   | a dropdown, collapsed          | radios in the settings sheet      |
+| Extra chrome   | none — it should disappear     | a gear that names what's inside   |
+| On a phone     | never drawn                    | 44px targets, safe-area insets, no fullscreen |
 
-Understated is correct on a projector and wrong on a bus; explicit is the
-reverse. One component with forks throughout serves neither, and both are
-harder to lift out.
+Inline is correct for someone running a talk and wrong for someone listening on
+a bus; a gear is the reverse. One component with forks throughout serves
+neither, and both are harder to lift out.
 
 ### Two hooks own two browser APIs
 
@@ -192,9 +267,9 @@ the private-mode guard — Safari *throws* on `localStorage` in private mode, an
 the version of this code that hand-rolled each preference had modules that
 forgot the `try/catch`.
 
-Both chromes and `SlideRenderer` read no context themselves — everything they
-show arrives as props — so you can import `DeckChromeMobile` directly and decide
-the breakpoint yourself. One exception travels with it: the mobile chrome's
+Both bars and `SlideRenderer` read no context themselves — everything they
+show arrives as props — so you can import `DeckChromeViewer` directly if you
+only ever play to a viewer. One exception travels with it: the viewer's
 settings sheet renders the shared `SettingsForm`, which reads the presenter-mode,
 voice-preference and viewport contexts. Mount it inside those providers, as
 `App.tsx` does, or the sheet's stored-preference rows fall back to the

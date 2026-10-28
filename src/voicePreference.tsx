@@ -15,25 +15,28 @@ import {
 //   narrateByDefault — start narrating the moment a deck opens, instead of
 //     waiting for someone to find the Voice control in the player.
 //
-//   suitcaseMode — when the current slide's narration ends, advance to the
+//   audiobookMode — when the current slide's narration ends, advance to the
 //     next one. An audiobook rather than a slideshow: headphones on, phone in
 //     a pocket, no fumbling to page through a 60-slide deck.
 //
-// Suitcase Mode requires narration, in BOTH directions: turning it on turns
+// Audiobook mode requires narration, in BOTH directions: turning it on turns
 // narration on, and turning narration off turns it off. It advances when a
 // clip ENDS, so without narration there is no such event and the setting
 // cannot mean anything. Never let a dependent setting outlive — or override —
-// the setting it depends on: a Suitcase flag left set over a silent deck is
+// the setting it depends on: an Audiobook flag left set over a silent deck is
 // how you end up reading audio aloud to someone who just asked for quiet.
 
 const NARRATE_STORAGE_KEY = "connected-deck:narrate-by-default";
-const SUITCASE_STORAGE_KEY = "connected-deck:suitcase-mode";
+// The key keeps the mode's old name (Suitcase Mode) on purpose: renaming it
+// would forget every visitor's stored choice. Storage keys are a published
+// contract, the same way the voice ids are.
+const AUDIOBOOK_STORAGE_KEY = "connected-deck:suitcase-mode";
 
 interface VoicePreferenceValue {
   narrateByDefault: boolean;
   setNarrateByDefault: (next: boolean) => void;
-  suitcaseMode: boolean;
-  setSuitcaseMode: (next: boolean) => void;
+  audiobookMode: boolean;
+  setAudiobookMode: (next: boolean) => void;
   /**
    * Which voice a deck opens in. Shares VOICE_STORAGE_KEY with the presenter
    * notes window's own picker on purpose — "which voice reads to me" is one
@@ -49,8 +52,8 @@ interface VoicePreferenceValue {
 const VoicePreferenceContext = createContext<VoicePreferenceValue>({
   narrateByDefault: false,
   setNarrateByDefault: () => {},
-  suitcaseMode: false,
-  setSuitcaseMode: () => {},
+  audiobookMode: false,
+  setAudiobookMode: () => {},
   defaultVoiceId: DEFAULT_VOICE_ID,
   setDefaultVoiceId: () => {},
 });
@@ -61,8 +64,8 @@ export function VoicePreferenceProvider({ children }: { children: ReactNode }) {
   // the hook can't know: how these two settings relate to each other.
   const { value: narrateByDefault, setValue: setNarrate } =
     usePersistedFlag(NARRATE_STORAGE_KEY);
-  const { value: suitcaseMode, setValue: setSuitcase } =
-    usePersistedFlag(SUITCASE_STORAGE_KEY);
+  const { value: audiobookMode, setValue: setAudiobook } =
+    usePersistedFlag(AUDIOBOOK_STORAGE_KEY);
   // A stored voice outlives the code that wrote it — an id since removed from
   // NARRATION_VOICES must not be handed back out, so the hook validates it.
   const { value: defaultVoiceId, setValue: setDefaultVoiceId } = usePersistedValue(
@@ -74,35 +77,35 @@ export function VoicePreferenceProvider({ children }: { children: ReactNode }) {
   const setNarrateByDefault = useCallback(
     (next: boolean) => {
       setNarrate(next);
-      // Narration off clears Suitcase Mode — see the module comment.
-      if (!next) setSuitcase(false);
+      // Narration off clears Audiobook mode — see the module comment.
+      if (!next) setAudiobook(false);
     },
-    [setNarrate, setSuitcase],
+    [setNarrate, setAudiobook],
   );
 
-  const setSuitcaseMode = useCallback(
+  const setAudiobookMode = useCallback(
     (next: boolean) => {
-      setSuitcase(next);
-      // Turning Suitcase Mode on implies narration — see the module comment.
+      setAudiobook(next);
+      // Turning Audiobook mode on implies narration — see the module comment.
       if (next) setNarrate(true);
     },
-    [setSuitcase, setNarrate],
+    [setAudiobook, setNarrate],
   );
 
   const value = useMemo(
     () => ({
       narrateByDefault,
       setNarrateByDefault,
-      suitcaseMode,
-      setSuitcaseMode,
+      audiobookMode,
+      setAudiobookMode,
       defaultVoiceId,
       setDefaultVoiceId,
     }),
     [
       narrateByDefault,
       setNarrateByDefault,
-      suitcaseMode,
-      setSuitcaseMode,
+      audiobookMode,
+      setAudiobookMode,
       defaultVoiceId,
       setDefaultVoiceId,
     ],

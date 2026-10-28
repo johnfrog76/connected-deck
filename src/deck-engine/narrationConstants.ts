@@ -33,11 +33,9 @@ export const VOICE_PICKER_TITLE = "Narration voice";
 
 // Control labels, named rather than inlined so the two chromes and the
 // Settings drawer can't drift into saying slightly different things about the
-// same switch. Suitcase Mode's label states which mode you are IN, not what
-// the switch does — same grammar as Sofa/Podium on the launch page.
+// same switch. The mode names themselves (Sofa, Audiobook, Podium) live with
+// the mode rules in settingsRules.ts.
 export const NARRATION_SWITCH_LABEL = "Narration";
-export const SUITCASE_ON_LABEL = "Suitcase mode";
-export const SUITCASE_OFF_LABEL = "Manual paging";
 export const SETTINGS_LABEL = "Settings";
 export const CLOSE_SETTINGS_LABEL = "Close settings";
 export const EXIT_DECK_LABEL = "Exit deck";
