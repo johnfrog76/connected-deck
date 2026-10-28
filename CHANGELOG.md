@@ -9,6 +9,8 @@ nothing and something stopped being broken.
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-28
+
 ### Added
 
 - **Audiobook mode**: the player reads a deck aloud and turns its own slides,
@@ -65,5 +67,6 @@ The first release: the engine as it stands on `main`.
   narration, the narrate server and the tests.
 - Runs on Node 24 (`engines.node` is `>=24`).
 
-[Unreleased]: https://github.com/johnfrog76/connected-deck/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/johnfrog76/connected-deck/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/johnfrog76/connected-deck/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/johnfrog76/connected-deck/releases/tag/v0.1.0
