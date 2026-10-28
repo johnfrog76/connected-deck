@@ -21,7 +21,7 @@ import { useCallback, useRef } from "react";
 // Pointer Events rather than touch events: one code path covers touch, pen,
 // and mouse.
 //
-// ── Why this leaves Suitcase Mode alone ─────────────────────────────────────
+// ── Why this leaves Audiobook mode alone ─────────────────────────────────────
 //
 // The hook touches no narration state — not the dwell timer, not `paused`. It
 // calls the same goNext/goPrev the paging arrows and the arrow keys call, so

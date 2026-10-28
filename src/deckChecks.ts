@@ -14,7 +14,13 @@ import { formatElapsed } from "./deck-engine/PresenterNotes";
 import { voiceUrl } from "./bakedVoices";
 import { DECKS } from "./decks/index";
 import { Say, Context, Beat } from "./deck-engine/PresenterNoteKit";
-import { computeAtPodium, computeSuitcaseAvailable, computeSuitcaseActive, computeSofaActive } from "./settingsRules";
+import {
+  computeAtPodium,
+  computeAudiobookAvailable,
+  computeAudiobookActive,
+  computeSofaActive,
+  computeViewingMode,
+} from "./settingsRules";
 import { readPersistedFlag } from "./shared/usePersistedState";
 import type { Slide } from "./decks/types";
 import type { ReactElement, ReactNode } from "react";
@@ -178,15 +184,15 @@ export const CHECKS: (() => CheckResult)[] = [
       t(computeAtPodium(true, true) === false, "a phone forces Sofa even with Podium saved");
       t(computeAtPodium(false, false) === false, "Sofa preference stays Sofa on a wide window");
 
+      t(computeAudiobookAvailable(false) === true, "away from the podium ⇒ Audiobook can be chosen");
+      t(computeAudiobookAvailable(true) === false, "podium disables Audiobook — a presenter turns their own slides");
       t(
-        computeSuitcaseAvailable(false, true) === true,
-        "sofa + narration on ⇒ suitcase can be offered",
+        computeAudiobookAvailable(false, true) === false,
+        "a deck with no baked audio at all disables Audiobook — no clip end to advance on",
       );
-      t(computeSuitcaseAvailable(true, true) === false, "podium disables suitcase regardless of narration");
-      t(computeSuitcaseAvailable(false, false) === false, "no narration ⇒ nothing to advance suitcase on");
       t(
-        computeSuitcaseAvailable(false, true, true) === false,
-        "a deck with no baked audio at all disables suitcase even with the global preference on",
+        computeAudiobookActive(false, true, false) === false,
+        "Audiobook chosen over a silent viewing is not driving it — narration off returns to Sofa",
       );
 
       // Exactly one of the three viewing modes should ever be active, across a
@@ -195,13 +201,16 @@ export const CHECKS: (() => CheckResult)[] = [
       let exclusiveEverywhere = true;
       for (const presenter of [true, false]) {
         for (const isMobile of [true, false]) {
-          for (const suitcaseMode of [true, false]) {
+          for (const audiobookMode of [true, false]) {
             for (const narrateByDefault of [true, false]) {
               const atPodium = computeAtPodium(presenter, isMobile);
-              const suitcaseActive = computeSuitcaseActive(atPodium, suitcaseMode, narrateByDefault);
-              const sofaActive = computeSofaActive(atPodium, suitcaseActive);
-              const activeCount = [atPodium, suitcaseActive, sofaActive].filter(Boolean).length;
+              const audiobookActive = computeAudiobookActive(atPodium, audiobookMode, narrateByDefault);
+              const sofaActive = computeSofaActive(atPodium, audiobookActive);
+              const activeCount = [atPodium, audiobookActive, sofaActive].filter(Boolean).length;
               if (activeCount !== 1) exclusiveEverywhere = false;
+              const named = computeViewingMode(atPodium, audiobookActive);
+              const expected = atPodium ? "podium" : audiobookActive ? "audiobook" : "sofa";
+              if (named !== expected) exclusiveEverywhere = false;
             }
           }
         }

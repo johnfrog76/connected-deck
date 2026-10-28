@@ -18,16 +18,21 @@ import {
   voiceOptionLabel,
 } from "./narrationConstants";
 
-// The podium chrome. Understated ON PURPOSE: these controls are projected on a
-// wall in front of a room, so every pixel they occupy is a pixel the audience
-// is looking at instead of the slide. Small buttons, subtle appearance,
-// everything inline — no drawers, no sheets, nothing that animates.
+// The presenter's bar, Podium mode's. Everything inline — Exit, previous, the
+// counter, next, the sound, the voice, the notes, fullscreen — because
+// presenting is the one time every control is wanted at hand. Understated ON
+// PURPOSE all the same: the bar is projected on a wall in front of a room, so
+// every pixel it occupies is a pixel the audience is looking at instead of the
+// slide. Small buttons, subtle appearance, no drawers, no sheets, nothing that
+// animates.
 //
-// Do not port mobile's reasoning here. A gear that "names what's behind it" is
-// the right call for a thumb hunting on a bus and the wrong call for a room
-// watching a talk. See DeckChromeMobile for the other half of that argument.
+// Never drawn at the phone width: DeckPlayer does not offer Podium there, so
+// this bar never has to fold. Do not port the viewer's bar's reasoning here —
+// a gear that "names what's behind it" is the right call for someone watching
+// and the wrong call for someone running a talk. See DeckChromeViewer for the
+// other half of that argument.
 
-export function DeckChromeDesktop({
+export function DeckChromePresenter({
   slideIndex,
   slides,
   deckId,
@@ -44,6 +49,7 @@ export function DeckChromeDesktop({
     narration?.voices.find((v) => v.id === narration.voiceId)?.name ?? "";
   return (
     <div
+      data-bar="presenter"
       style={{
         flexShrink: 0,
         backgroundColor: NAV_BG,
@@ -60,7 +66,7 @@ export function DeckChromeDesktop({
         ✕ Exit
       </Button>
 
-      {/* Center: prev / counter / next */}
+      {/* Center: prev / counter / next, then the sound and the voice */}
       <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
         <Button size="small" appearance="subtle" disabled={slideIndex === 0} onClick={goPrev}>
           ←
@@ -86,9 +92,11 @@ export function DeckChromeDesktop({
           →
         </Button>
 
-        {/* Narration controls — toggle + voice picker. Shown only when the host
-            wires narration. The toggle disables on slides with no baked clip in
-            the current voice, so it never silently does nothing. */}
+        {/* Narration controls — the sound toggle + voice picker. Shown only
+            when the host wires narration, and silent until the presenter turns
+            it on: their own voice is usually the point. The toggle disables on
+            slides with no baked clip in the current voice, so it never
+            silently does nothing. */}
         {narration && (
           <>
             <Button

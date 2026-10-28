@@ -9,11 +9,11 @@ import { CatDev } from "./decks/cat-dev";
 // AROUND these scenes; nothing in here reads the theme.
 //
 // The palette is the first trailer's (git history of connected-deck-trailer.tsx), plus a bakelite
-// register for the plug and the suitcase: the logo is a vintage two-prong lamp
-// plug — brown bakelite body, brass prongs, cloth-covered cord — because
-// "connected" is the product name and a plug is the least abstract way to say
-// it. The suitcase is molded from the same material on purpose; the mark and
-// the mode rhyme.
+// register for the plug: the logo is a vintage two-prong lamp plug — brown
+// bakelite body, brass prongs, cloth-covered cord — because "connected" is the
+// product name and a plug is the least abstract way to say it. The Audiobook
+// scene's earbud cord is the same cloth cord on purpose; the mark and the mode
+// rhyme.
 
 const P = {
   skyBg: "#090b16",
@@ -54,6 +54,8 @@ export function LaunchKeyframes() {
       @keyframes lp-ring      { 0% { transform: scale(0.45); opacity: 0.75; } 100% { transform: scale(2.1); opacity: 0; } }
       @keyframes lp-tickglow  { 0%, 100% { opacity: 0.35; } 50% { opacity: 1; } }
       @keyframes lp-note      { 0% { transform: translateY(0); opacity: 0; } 25% { opacity: 0.85; } 100% { transform: translateY(-26px); opacity: 0; } }
+      /* the Audiobook ring filling as a slide is read, then the next slide */
+      @keyframes lp-ringfill  { 0% { stroke-dashoffset: 100; } 88% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: 0; } }
       /* current runs the cord tip-to-prongs, rests, runs again */
       @keyframes lp-cordpulse { 0% { stroke-dashoffset: 114; opacity: 0; } 6% { opacity: 1; } 52% { stroke-dashoffset: 0; opacity: 1; } 64% { opacity: 0; } 100% { stroke-dashoffset: 0; opacity: 0; } }
       @keyframes rs-breathe   { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.035); } }
@@ -254,12 +256,12 @@ export function HeroBackdrop() {
 
 // Each mode's accent, for the card HEADINGS (and anything else that wants to
 // speak in a scene's voice from outside the scene): sofa is lamplight, podium
-// is the timing grid's order-blue, suitcase is go-anywhere signal green. The
+// is the timing grid's order-blue, audiobook is go-anywhere signal green. The
 // scenes themselves stay caption-free — nothing sits on the art.
 export const SCENE_TINTS = {
   sofa: P.lamp,
   podium: P.order,
-  suitcase: P.signal,
+  audiobook: P.signal,
 } as const;
 
 // ── Scene plumbing ───────────────────────────────────────────────────────────
@@ -398,7 +400,7 @@ export function SofaScene() {
 // podium's whole iconography from the trailer, condensed to one frame.
 export function PodiumScene() {
   return (
-    // A lit stage, not the page's own night: the sofa and suitcase scenes own
+    // A lit stage, not the page's own night: the sofa and audiobook scenes own
     // warm browns, so the podium owns a saturated steel blue in its `order`
     // voice — bright enough at the back wall to separate from the #131022
     // page ground, falling to a dark floor the lectern can stand on.
@@ -513,11 +515,14 @@ export function PodiumScene() {
   );
 }
 
-// ── Suitcase Mode — a deck that plays itself ─────────────────────────────────
-// A bakelite-brown case (same material as the plug — the mark and the mode
-// rhyme), headphones parked on the lid, and narration rings leaving the case:
-// the deck is in there, reading itself to someone whose phone is in a pocket.
-export function SuitcaseScene() {
+// ── Audiobook Mode — a deck that plays itself, on a phone ───────────────────
+// A phone at dusk, playing a deck: a slide on the screen and the viewer's bar
+// under it, Exit | previous, the play ring, next | settings and the sound. The
+// ring fills as the slide is read, narration leaves the phone, and an earbud
+// cord in the plug's cloth runs out of frame to whoever is listening with the
+// phone in a pocket. The bar is drawn as the player draws it, so the card
+// shows what the mode looks like, not a metaphor for it.
+export function AudiobookScene() {
   return (
     <Scene bg={`linear-gradient(180deg, #151021 0%, #241610 100%)`}>
       {/* dusk glow low in the frame — bus-window light, golden-hour warm */}
@@ -531,16 +536,15 @@ export function SuitcaseScene() {
           background: `radial-gradient(ellipse at 50% 80%, ${P.cloudPeach}42 0%, transparent 68%)`,
         }}
       />
-      <GroundShadow left="14%" top="88%" w="68%" />
 
-      {/* narration leaving the case */}
+      {/* narration leaving the phone */}
       {[0, 2].map((delay) => (
         <div
           key={delay}
           style={{
             position: "absolute",
-            left: "32%",
-            top: "30%",
+            left: "33%",
+            top: "22%",
             width: "34%",
             aspectRatio: "1 / 1",
             borderRadius: "50%",
@@ -549,10 +553,9 @@ export function SuitcaseScene() {
           }}
         />
       ))}
-      {/* a couple of notes on their way out */}
       {[
-        { left: "68%", top: "24%", delay: 0.8, glyph: "♪", color: P.energy },
-        { left: "26%", top: "18%", delay: 2.6, glyph: "♩", color: P.calm },
+        { left: "70%", top: "20%", delay: 0.8, glyph: "♪", color: P.energy },
+        { left: "24%", top: "26%", delay: 2.6, glyph: "♩", color: P.calm },
       ].map((n) => (
         <span
           key={n.left}
@@ -570,107 +573,79 @@ export function SuitcaseScene() {
         </span>
       ))}
 
-      {/* handle first — behind the lid line */}
-      <div
-        style={{
-          position: "absolute",
-          left: "39%",
-          top: "16%",
-          width: "22%",
-          height: "16%",
-          border: `4px solid ${P.bakeliteDeep}`,
-          borderBottom: "none",
-          borderRadius: "10px 10px 0 0",
-        }}
-      />
-      {/* the case — scaled to own the frame */}
-      <div
-        style={{
-          position: "absolute",
-          left: "24%",
-          top: "30%",
-          width: "54%",
-          aspectRatio: "1.45 / 1",
-          borderRadius: "9px",
-          background: `linear-gradient(160deg, ${P.bakelite} 0%, ${P.bakeliteMid} 55%, ${P.bakeliteDeep} 100%)`,
-          border: `1px solid ${P.bakeliteDeep}`,
-          boxShadow: "0 10px 26px rgba(0,0,0,0.5)",
-        }}
-      >
-        {/* rim light along the lid — the dusk glow landing on something */}
-        <div style={{ position: "absolute", left: "4%", top: 0, width: "92%", height: "2px", borderRadius: "2px", background: `${P.cloudPeach}66` }} />
-        {/* lid seam */}
-        <div style={{ position: "absolute", left: 0, top: "28%", width: "100%", height: "1.5px", background: "#00000055" }} />
-        <div style={{ position: "absolute", left: 0, top: "28.6%", width: "100%", height: "1px", background: `${P.cordBraid}66` }} />
-        {/* straps */}
-        {["16%", "78%"].map((x) => (
-          <div
-            key={x}
-            style={{
-              position: "absolute",
-              left: x,
-              top: 0,
-              width: "6%",
-              height: "100%",
-              background: `${P.bakeliteDeep}88`,
-            }}
-          />
-        ))}
-        {/* brass latches riding the straps at the seam */}
-        {["14.5%", "76.5%"].map((x) => (
-          <div
-            key={x}
-            style={{
-              position: "absolute",
-              left: x,
-              top: "24%",
-              width: "9%",
-              height: "10%",
-              borderRadius: "2px",
-              background: `linear-gradient(180deg, #f0d28a 0%, ${P.brassDeep} 100%)`,
-              border: `1px solid ${P.brassDeep}`,
-            }}
-          />
-        ))}
-        {/* travel stickers — where this case has been */}
-        <div
-          style={{
-            position: "absolute",
-            left: "30%",
-            top: "48%",
-            width: "16%",
-            height: "13%",
-            borderRadius: "3px",
-            transform: "rotate(-10deg)",
-            background: `${P.signal}33`,
-            border: `1px solid ${P.signal}bb`,
-          }}
-        />
-        <div
-          style={{
-            position: "absolute",
-            left: "52%",
-            top: "62%",
-            width: "13%",
-            height: "13%",
-            borderRadius: "50%",
-            transform: "rotate(8deg)",
-            background: `${P.cloudViolet}3d`,
-            border: `1px solid ${P.cloudViolet}bb`,
-          }}
-        />
-      </div>
-
-      {/* headphones hooked over the handle, cups resting on the lid — the
-          listener's half of the deal. Drawn after the case so they sit on it. */}
+      {/* the earbud cord, out of the phone's foot and off the frame */}
       <svg
         viewBox="0 0 100 100"
         preserveAspectRatio="none"
+        aria-hidden="true"
         style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}
       >
-        <path d="M 45 16 A 9.5 12 0 0 1 64 16" fill="none" stroke="#3c4356" strokeWidth="2.6" strokeLinecap="round" />
-        <rect x="41" y="14" width="7" height="12" rx="2.8" fill="#232837" stroke="#4a5268" strokeWidth="0.8" />
-        <rect x="60.5" y="14" width="7" height="12" rx="2.8" fill="#232837" stroke="#4a5268" strokeWidth="0.8" />
+        <path
+          d="M 50 94 C 50 99, 70 97, 78 90 S 92 74, 104 78"
+          fill="none"
+          stroke={P.cord}
+          strokeWidth="1.4"
+          strokeLinecap="round"
+          vectorEffect="non-scaling-stroke"
+        />
+      </svg>
+
+      {/* the phone, portrait, owning the middle of the frame */}
+      <svg
+        viewBox="0 0 60 110"
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          left: "50%",
+          top: "6%",
+          height: "88%",
+          transform: "translateX(-50%)",
+          filter: "drop-shadow(0 10px 18px rgba(0,0,0,0.55))",
+        }}
+      >
+        {/* body and screen */}
+        <rect x="1" y="1" width="58" height="108" rx="8" fill={P.ink} stroke="#3c4356" strokeWidth="1.2" />
+        <rect x="4" y="5" width="52" height="100" rx="5" fill={P.skyBg} />
+        {/* the slide: a title bar and a live line, the engine's own subject */}
+        <rect x="9" y="12" width="26" height="3" rx="1.5" fill={P.calm} opacity="0.85" />
+        <rect x="9" y="18" width="38" height="2" rx="1" fill={P.muted} opacity="0.6" />
+        <polyline
+          points="9,58 16,50 22,54 29,40 36,46 43,32 51,36"
+          fill="none"
+          stroke={P.energy}
+          strokeWidth="1.6"
+          strokeLinejoin="round"
+          strokeLinecap="round"
+        />
+        <line x1="9" y1="62" x2="51" y2="62" stroke={P.muted} strokeWidth="0.5" opacity="0.5" />
+        <rect x="9" y="68" width="34" height="2" rx="1" fill={P.muted} opacity="0.45" />
+        <rect x="9" y="73" width="28" height="2" rx="1" fill={P.muted} opacity="0.45" />
+
+        {/* the viewer's bar: three columns, the ring on the screen's centre */}
+        <rect x="4" y="88" width="52" height="17" fill="#060710" />
+        <line x1="4" y1="88" x2="56" y2="88" stroke="#1e2030" strokeWidth="0.6" />
+        <text x="8" y="99" fontSize="5" fill={P.muted} fontFamily="sans-serif">✕</text>
+        <text x="19" y="99" fontSize="5" fill={P.muted} fontFamily="sans-serif">←</text>
+        <circle cx="30" cy="96.5" r="5" fill="none" stroke="#3c4356" strokeWidth="1" />
+        <circle
+          cx="30"
+          cy="96.5"
+          r="5"
+          fill="none"
+          stroke={P.signal}
+          strokeWidth="1"
+          strokeLinecap="round"
+          pathLength={100}
+          strokeDasharray="100 100"
+          transform="rotate(-90 30 96.5)"
+          style={{ animation: "lp-ringfill 6s linear infinite" }}
+        />
+        {/* pause glyph inside the ring: it is playing */}
+        <rect x="28.2" y="94.3" width="1.3" height="4.4" fill={P.calm} />
+        <rect x="30.6" y="94.3" width="1.3" height="4.4" fill={P.calm} />
+        <text x="37" y="99" fontSize="5" fill={P.muted} fontFamily="sans-serif">→</text>
+        <circle cx="46" cy="96.5" r="1.8" fill="none" stroke={P.muted} strokeWidth="0.7" />
+        <path d="M 50 95 L 51.5 95 L 53 93.6 L 53 99.4 L 51.5 98 L 50 98 Z" fill={P.energy} />
       </svg>
     </Scene>
   );

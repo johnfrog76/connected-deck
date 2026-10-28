@@ -31,7 +31,7 @@ export interface ViewportState {
   /**
    * A phone (0–575px). The question almost every consumer actually has, so it
    * is answered here rather than making each one compare tiers. Touch targets
-   * grow, the deck swaps to its mobile chrome, and Presenter goes away.
+   * grow, the viewer's bar sizes itself for a thumb, and Podium goes away.
    */
   isMobile: boolean;
   /** 768px and up. Sugar for tier === "md", for the rare "go overboard" case. */

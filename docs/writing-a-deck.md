@@ -112,11 +112,14 @@ src/
     DeckController.tsx    slide index, fullscreen, keyboard, cross-window sync
     SlideRenderer.tsx     60/40 side by side, or stacked art-over-copy on a
                           phone (the art SCALES, it doesn't reflow)
-    DeckChrome.tsx        picks a chrome — ~10 lines, no styling of its own
-    DeckChromeDesktop.tsx the podium bar: understated, a room can see it
-    DeckChromeMobile.tsx  the bus bar: 44px targets, gear sheet, one-button
-                          transport in Suitcase Mode
-    deckChromeShared.ts   the props contract both chromes agree on
+    DeckChrome.tsx        picks a bar by mode — no styling of its own
+    DeckChromePresenter.tsx  Podium's bar: everything inline, understated
+    DeckChromeViewer.tsx  the viewer's bar: three columns, the transport on
+                          the centre, the play ring in Audiobook mode, the
+                          gear's settings sheet
+    deckChromeShared.ts   the props contract both bars agree on
+    viewerBarLayout.ts    the three-column rule and the sizes that hold it
+    AudiobookTransport.tsx  the play ring: play/pause wearing the slide's progress
     ComponentFrame.tsx    wraps a real component: design grid + live zoom
     PresenterNotes.tsx    the second-screen window: notes, timer, next-slide
                           preview, narration controls
@@ -139,12 +142,14 @@ src/
   shared/
     usePersistedState.ts  THE localStorage layer — only the in-browser
                           checks (deckChecks.ts) touch it directly too
-  LaunchPage.tsx          deck list + the Sofa/Podium switch + the gear
+  LaunchPage.tsx          deck list + the three mode cards + the gear
   PresentationDeck.tsx    /deck/:deckId — resolves mode, mounts DeckPlayer
   SettingsForm.tsx        the settings themselves: rows, copy, gating rules
+  settingsRules.ts        the three modes, their one-line descriptions, and
+                          the rules for which one is on
   SettingsDrawer.tsx      a container that renders SettingsForm. Nothing else
   presenterMode.tsx       the persisted Sofa/Podium setting
-  voicePreference.tsx     narrate-by-default, Suitcase Mode, default voice
+  voicePreference.tsx     narrate-by-default, Audiobook mode, default voice
   viewport.tsx            THE matchMedia layer — components ask `isMobile`
   media.ts                breakpoints + MEDIA.* query strings for makeStyles
   bakedVoices.ts          the committed-mp3 registry

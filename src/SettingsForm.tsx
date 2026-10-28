@@ -1,11 +1,13 @@
 import {
   Body1,
+  Label,
   Radio,
   RadioGroup,
   Subtitle2,
   Switch,
   makeStyles,
   tokens,
+  useId,
 } from "@fluentui/react-components";
 import {
   NARRATION_VOICES,
@@ -16,24 +18,32 @@ import {
 import { usePresenterMode } from "./presenterMode";
 import { useVoicePreference } from "./voicePreference";
 import { useViewport } from "./viewport";
-import { computeAtPodium, computeSuitcaseAvailable } from "./settingsRules";
+import {
+  VIEWING_MODES,
+  computeAtPodium,
+  computeAudiobookActive,
+  computeAudiobookAvailable,
+  computeViewingMode,
+  type ViewingMode,
+} from "./settingsRules";
 
 // THE settings form. One component owns what the settings ARE, what they mean,
 // how they gate each other, and what every row says — regardless of which
 // surface it's rendered into.
 //
 // Two surfaces render it today: the launch page's side drawer (SettingsDrawer)
-// and the in-deck bottom sheet on a phone (DeckChromeMobile). They differ in
-// PRESENTATION only — the sheet is tighter, drops section headings, and hides
-// rows that make no sense mid-deck — and that difference is a `variant` prop
-// here rather than a second copy of the form somewhere else.
+// and the in-deck bottom sheet behind the viewer's bar (DeckChromeViewer). They
+// differ in PRESENTATION only — the sheet is tighter, drops section headings,
+// and leaves out Podium, which is chosen before a deck opens — and that
+// difference is a `variant` prop here rather than a second copy of the form
+// somewhere else.
 //
 // Why this exists: the two surfaces WERE separate implementations, and they
 // drifted exactly the way you'd expect. The drawer said "Narrated"/"Silent",
 // the sheet said "Narration". The drawer explained why a disabled switch was
 // disabled; the sheet just greyed it out, which reads as broken. Worst of all,
 // each surface restated the gating rules itself, so one of them was wrong: the
-// drawer's Suitcase switch checked Presenter but not Voice, and stayed live
+// drawer's auto-advance switch checked Presenter but not Voice, and stayed live
 // over a silent deck.
 //
 // The rule is stated ONCE, below, and every surface inherits it.
@@ -62,6 +72,14 @@ const useStyles = makeStyles({
     color: tokens.colorNeutralForeground2,
     display: "block",
     marginBottom: tokens.spacingVerticalS,
+  },
+  modeName: {
+    display: "block",
+    fontWeight: tokens.fontWeightSemibold,
+  },
+  modeLine: {
+    display: "block",
+    color: tokens.colorNeutralForeground3,
   },
 });
 
@@ -107,11 +125,12 @@ export interface SettingsFormProps {
    *
    * These are genuinely different things and the form serves both: in Settings
    * the Narration switch decides whether FUTURE decks open narrated, while
-   * in-deck it mutes THIS playback right now. Muting the deck you're watching
-   * shouldn't silently rewrite what every future deck does, so the in-deck
-   * sheet passes the player's session state here and the row drives that
-   * instead. Everything else — the label, the hint, the Suitcase gating — is
-   * identical either way, which is the entire reason this is one component.
+   * in-deck it mutes THIS playback right now — the same setting as the bar's
+   * sound button. Muting the deck you're watching shouldn't silently rewrite
+   * what every future deck does, so the in-deck sheet passes the player's
+   * session state here and the row drives that instead. Everything else — the
+   * label, the hint, the mode's gating — is identical either way, which is the
+   * entire reason this is one component.
    *
    * Omit them (the drawer does) and the row falls back to the preference.
    */
@@ -128,6 +147,14 @@ export interface SettingsFormProps {
   voices?: readonly { id: string; name: string; available: boolean }[];
   voiceId?: string;
   onVoiceChange?: (id: string) => void;
+  /**
+   * In-deck only: whether Audiobook mode is driving this viewing, and how to
+   * choose between it and Sofa. The sheet shows the mode row only when the
+   * host passes `onAudiobookChange` — a host that locks the player to one mode
+   * leaves it out, and the row with it.
+   */
+  audiobookValue?: boolean;
+  onAudiobookChange?: (next: boolean) => void;
 }
 
 export function SettingsForm({
@@ -138,18 +165,21 @@ export function SettingsForm({
   voices,
   voiceId,
   onVoiceChange,
+  audiobookValue,
+  onAudiobookChange,
 }: SettingsFormProps) {
   const styles = useStyles();
   const { presenter, setPresenter } = usePresenterMode();
   const {
     narrateByDefault,
     setNarrateByDefault,
-    suitcaseMode,
-    setSuitcaseMode,
+    audiobookMode,
+    setAudiobookMode,
     defaultVoiceId,
     setDefaultVoiceId,
   } = useVoicePreference();
   const { isMobile } = useViewport();
+  const modeLabelId = useId("deck-mode");
 
   // In-deck: the surveyed voices for THIS deck, driving the live player.
   // In Settings: the full roster, setting the stored default. Same rows.
@@ -161,9 +191,9 @@ export function SettingsForm({
   const sheet = variant === "sheet";
 
   // Live session state when a host supplies it, the stored preference
-  // otherwise. Everything downstream — including Suitcase Mode's gating —
-  // reads this one value, so the in-deck sheet gates on what's actually
-  // audible rather than on what a future deck would do.
+  // otherwise. Everything downstream — including the mode's gating — reads
+  // this one value, so the in-deck sheet gates on what's actually audible
+  // rather than on what a future deck would do.
   const narrationOn = narrationValue ?? narrateByDefault;
   const setNarrationOn = onNarrationChange
     ? () => onNarrationChange()
@@ -173,49 +203,93 @@ export function SettingsForm({
   // Stated once. Every `checked`, `disabled` and label below reads these, so
   // they cannot disagree with each other the way two hand-written surfaces did.
   //
-  // Presenter is forced off on a phone (no second window to put notes in), so
-  // this is the EFFECTIVE mode rather than the stored flag — otherwise someone
-  // with a saved Podium preference gets told "you're driving" on a bus.
-  const atPodium = computeAtPodium(presenter, isMobile);
-  // Suitcase Mode has two parents and either one disables it: it advances when
-  // a narration clip ENDS, so it needs Voice on to have an event at all, and it
-  // needs Sofa because presenter mode drops in-player narration entirely.
-  // Reads `narrationOn`, so in-deck it gates on what's actually audible.
-  const suitcaseAvailable = computeSuitcaseAvailable(atPodium, narrationOn, narrationDisabled);
+  // In-deck the sheet is always Sofa's player or Audiobook's (Podium has its
+  // own bar and no sheet), so the effective mode there is what the player
+  // reports. In Settings, Podium is forced off on a phone (no second window to
+  // put notes in), so this is the EFFECTIVE mode rather than the stored flag.
+  const atPodium = sheet ? false : computeAtPodium(presenter, isMobile);
+  const audiobookActive = sheet
+    ? !!audiobookValue
+    : computeAudiobookActive(atPodium, audiobookMode, narrationOn);
+  const mode = computeViewingMode(atPodium, audiobookActive);
+  const audiobookAvailable = computeAudiobookAvailable(false, narrationDisabled);
+
+  const showModeRow = !sheet || !!onAudiobookChange;
+  const modes: ViewingMode[] = sheet ? ["sofa", "audiobook"] : ["sofa", "audiobook", "podium"];
+
+  const chooseMode = (next: ViewingMode) => {
+    if (sheet) {
+      // Audiobook advances on a clip's END, so choosing it here turns this
+      // viewing's narration on too — the listener's explicit act, never a
+      // dependent setting overriding its parent on its own.
+      if (next === "audiobook" && !narrationOn) setNarrationOn(true);
+      onAudiobookChange?.(next === "audiobook");
+      return;
+    }
+    if (next === "podium") {
+      setPresenter(true);
+      return;
+    }
+    setPresenter(false);
+    // setAudiobookMode(true) turns narration on with it (voicePreference.tsx).
+    setAudiobookMode(next === "audiobook");
+  };
+
+  const modeHint = !audiobookAvailable
+    ? "Audiobook needs narration — this deck has no baked audio to advance on."
+    : !sheet && isMobile
+      ? "Podium needs a wider window — notes pop out beside the deck."
+      : sheet
+        ? mode === "audiobook"
+          ? "Reading aloud and turning the slides. Pick Sofa to page by hand."
+          : "Paging by hand. Pick Audiobook to let the deck play itself."
+        : "Which way a deck opens. It sticks in this browser.";
 
   return (
     <div className={`${styles.form} ${sheet ? styles.sheetGap : styles.drawerGap}`}>
-      {/* Presenter is a pre-deck choice — which way a deck OPENS — so in the
-          sheet it's disabled rather than interactive. Shown, though, not
-          hidden: someone who set Podium and opened a deck in a narrow window
-          landed in Sofa, and an ABSENT control can't explain why. This is the
-          one row whose job is answering "why am I not where I expected to be?"
-
-          Reachable on a narrowed desktop window far more than on an actual
-          phone — you can't resize a phone across the breakpoint, and a phone
-          visitor never had a Podium expectation to be surprised out of. So the
-          copy talks about window WIDTH, not device. */}
-      <div>
-        <Subtitle2 as="h3" className={styles.group} style={sheet ? { marginTop: 0 } : undefined}>
-          Presenter
-        </Subtitle2>
-        <Setting
-          checked={atPodium}
-          onChange={setPresenter}
-          disabled={isMobile || sheet}
-          label={atPodium ? "Podium" : "Sofa"}
-          ariaLabel="Presenter mode: off is Sofa, on is Podium"
-          hint={
-            isMobile
-              ? "Presenter notes in second window are disabled for small screens."
-              : sheet
-                ? "Set before you open a deck."
-                : presenter
-                  ? "Notes pop out beside the deck, no Voice control in the way."
-                  : "Watching mode — Voice controls, no notes."
-          }
-        />
-      </div>
+      {/* The mode first: it decides which bar you get and whether the deck
+          turns its own slides. Podium shows on a phone, disabled with its
+          reason, rather than vanishing — someone who set Podium and opened a
+          deck in a narrow window landed in Sofa, and an ABSENT option can't
+          explain why. In-deck, Podium isn't offered at all: the mode a deck
+          opens in is chosen before it opens. */}
+      {showModeRow && (
+        <div className={styles.setting}>
+          {sheet ? (
+            <Label id={modeLabelId}>Mode</Label>
+          ) : (
+            <Subtitle2 as="h3" id={modeLabelId} className={styles.group}>
+              Mode
+            </Subtitle2>
+          )}
+          <RadioGroup
+            aria-labelledby={modeLabelId}
+            value={mode}
+            onChange={(_, data) => chooseMode(data.value as ViewingMode)}
+          >
+            {modes.map((m) => (
+              <Radio
+                key={m}
+                value={m}
+                disabled={
+                  (m === "audiobook" && !audiobookAvailable) || (m === "podium" && isMobile)
+                }
+                label={{
+                  children: (
+                    <>
+                      <span className={styles.modeName}>{VIEWING_MODES[m].name}</span>
+                      <span className={styles.modeLine}>{VIEWING_MODES[m].line}</span>
+                    </>
+                  ),
+                }}
+              />
+            ))}
+          </RadioGroup>
+          <Body1 as="p" className={styles.hint}>
+            {modeHint}
+          </Body1>
+        </div>
+      )}
 
       <div>
         {!sheet && (
@@ -234,29 +308,13 @@ export function SettingsForm({
                 ? "This deck has no baked audio — nothing to read aloud."
                 : sheet
                   ? narrationOn
-                    ? "Reading this deck aloud. Flip to watch in silence."
+                    ? mode === "audiobook"
+                      ? "Reading this deck aloud. Flip to Silent and it goes back to paging."
+                      : "Reading this deck aloud. Flip to watch in silence."
                     : "Silent. Flip this and it picks up from this slide."
                   : narrationOn
-                    ? "Decks read themselves to you, audiobook style. Sit back."
+                    ? "Decks read each slide to you as it arrives. Sit back."
                     : "Decks open quiet. Flip this and they talk from the first slide."
-            }
-          />
-
-          <Setting
-            checked={suitcaseAvailable && suitcaseMode}
-            onChange={setSuitcaseMode}
-            disabled={!suitcaseAvailable}
-            label={suitcaseAvailable && suitcaseMode ? "Suitcase mode" : "Manual paging"}
-            hint={
-              atPodium
-                ? "Not at the podium — you're driving. Switch to Sofa to let a deck play itself."
-                : narrationDisabled
-                  ? "Needs narration — this deck has no baked audio to advance on."
-                  : !narrationOn
-                    ? "Needs Voice — a deck can only play itself if it's reading itself. Turn Narrated on above."
-                  : suitcaseMode
-                    ? "Decks play themselves — narration ends, next slide starts. Just listen."
-                    : "Bus, headphones, gloves on — no fumbling to page a 60-slide deck. Flip this on."
             }
           />
 

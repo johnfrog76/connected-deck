@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { DECKS } from "./decks/index";
-import { DeckPlayer } from "./deck-engine/DeckPlayer";
+import { ALL_DECK_MODES, DeckPlayer } from "./deck-engine/DeckPlayer";
 import { BAKED_VOICES, voiceUrl, type VoiceId } from "./bakedVoices";
 import { usePresenterMode } from "./presenterMode";
 import { useVoicePreference } from "./voicePreference";
@@ -18,8 +18,13 @@ export function PresentationDeck() {
   const [searchParams] = useSearchParams();
   const { presenter } = usePresenterMode();
   const { isMobile } = useViewport();
-  const { narrateByDefault, suitcaseMode, defaultVoiceId, setDefaultVoiceId } =
-    useVoicePreference();
+  const {
+    narrateByDefault,
+    audiobookMode,
+    setAudiobookMode,
+    defaultVoiceId,
+    setDefaultVoiceId,
+  } = useVoicePreference();
 
   const presentParam = searchParams.get("present");
   // isMobile overrides everything, INCLUDING ?present=1: a phone can't open a
@@ -39,6 +44,9 @@ export function PresentationDeck() {
       deckId={deckId}
       slides={slides}
       mode={isPresenter ? "presenter" : "audience"}
+      // This app presents decks as well as playing them, so it offers both.
+      // A host that only plays to a viewer passes ["audience"].
+      offeredModes={ALL_DECK_MODES}
       voices={BAKED_VOICES}
       hasApi={false}
       resolveNarrationUrl={(slide, voice) =>
@@ -48,7 +56,10 @@ export function PresentationDeck() {
       // user: a shared link shouldn't carry your auto-play and auto-advance
       // to whoever opens it.
       narrateByDefault={narrateByDefault}
-      suitcase={suitcaseMode}
+      audiobook={audiobookMode}
+      // The settings sheet's Sofa / Audiobook choice is the stored one: pick
+      // Audiobook mid-deck and the next deck opens in it too.
+      onAudiobookChange={setAudiobookMode}
       // One answer per visitor, wherever they gave it: Settings, this player,
       // or the notes window — all three read and write VOICE_STORAGE_KEY. Pick
       // Jenny mid-deck and the next deck opens on Jenny.

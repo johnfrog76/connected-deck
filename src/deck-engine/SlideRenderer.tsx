@@ -100,7 +100,7 @@ export function SlideRenderer({
   // DOM node and the browser keeps its scrollTop. Scroll halfway down a long
   // slide, advance, and the next slide opens mid-paragraph with its heading
   // above the fold. Worst in stacked/mobile, where the copy is the whole read
-  // below the art band and auto-advance (Suitcase Mode) can page for you — but
+  // below the art band and auto-advance (Audiobook mode) can page for you — but
   // it's the same bug on desktop's right-hand 40%, so this is not gated on
   // `stacked`.
   //

@@ -13,7 +13,7 @@ import { useCallback, useState } from "react";
 // Deliberately NOT a store, a context, or a sync layer. It's useState that
 // happens to survive a reload: each caller still owns its own key, its own
 // default, and any rules about how its value relates to another's (see
-// voicePreference.tsx, where Suitcase Mode and narration are coupled). Putting
+// voicePreference.tsx, where Audiobook mode and narration are coupled). Putting
 // those rules here would make one module the place every unrelated setting
 // goes to argue.
 

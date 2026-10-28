@@ -2,14 +2,14 @@ import { useEffect, useState } from "react";
 import { Button, tokens } from "@fluentui/react-components";
 import { PauseFilled, PlayFilled } from "@fluentui/react-icons";
 
-// ── SuitcaseTransport — the one-button transport, wearing its progress ───────
+// ── AudiobookTransport — the play ring, wearing its progress ─────────────────
 //
-// Suitcase Mode's play/pause with a progress ring around it: the ring is the
+// Audiobook mode's play/pause with a progress ring around it: the ring is the
 // slide's audible LIFE — it fills as the voice reads, keeps filling through
 // the post-clip dwell, and completes exactly as the deck advances (the hosts
 // feed it clip + dwell, deckDuration's own model of a slide). The one
-// glanceable answer to "when does the next slide come?" without surrendering
-// the one-big-button contract.
+// glanceable answer to "when does the next slide come?", sitting between the
+// previous and next buttons on the viewer's bar.
 //
 // Self-contained on purpose: props only — no context, no ambient hooks, no
 // imports beyond React and Fluent.
@@ -25,7 +25,7 @@ import { PauseFilled, PlayFilled } from "@fluentui/react-icons";
 const RING_STROKE = 3;
 const POLL_MS = 200;
 
-export function SuitcaseTransport({
+export function AudiobookTransport({
   paused,
   onTogglePause,
   getProgress,
@@ -36,9 +36,9 @@ export function SuitcaseTransport({
   onTogglePause: () => void;
   /**
    * Progress 0..1, sampled ~5×/s while mounted. What it measures is the
-   * host's call — both apps feed the slide's audible life (clip + dwell) so
-   * the ring completes exactly at the auto-advance. Return 0 when nothing is
-   * loaded.
+   * caller's call — DeckPlayer feeds the slide's audible life (clip + dwell)
+   * so the ring completes exactly at the auto-advance. Return 0 when nothing
+   * is loaded.
    */
   getProgress: () => number;
   /** Diameter in px. Default sits above the 44px touch floor. */
@@ -50,10 +50,8 @@ export function SuitcaseTransport({
   // so there's no event plumbing to maintain, and an
   // unmounted transport (paging mode) costs nothing at all.
   //
-  // Nothing here knows about viewports on purpose. Suitcase Mode is currently
-  // a phone-width affordance, but that's the HOST'S policy (DeckPlayer's
-  // gate), not this component's — it renders at any breakpoint it's mounted
-  // in, and relaxing the mode to desktop someday touches the gate, not this.
+  // Nothing here knows about viewports on purpose: the ring renders at any
+  // width it's mounted in, and when it is mounted is DeckPlayer's call.
   useEffect(() => {
     setProgress(getProgress());
     const id = setInterval(() => setProgress(getProgress()), POLL_MS);

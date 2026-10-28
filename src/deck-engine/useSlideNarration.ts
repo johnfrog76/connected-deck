@@ -25,13 +25,13 @@ export interface SlideNarration {
   toggle: () => void;
   /**
    * Transport hold: the listener pressed pause. Narration stays ON — the
-   * settings sheet's switch still reads "Narrated", and Suitcase Mode keeps
-   * its transport — playback is simply held until togglePause resumes it.
+   * settings sheet's switch still reads "Narrated", and Audiobook mode keeps
+   * its play ring — playback is simply held until togglePause resumes it.
    *
    * This is a THIRD state, deliberately distinct from the other two ways
    * narration goes quiet: `enabled` off means "this viewing is silent" (a mode
-   * change — Suitcase loses its parent and the chrome returns to paging
-   * arrows), and `suspended` means "the sheet is open over the deck" (the
+   * change — Audiobook mode loses its parent and the bar returns to the paging
+   * counter), and `suspended` means "the sheet is open over the deck" (the
    * player's own hold, invisible to the listener). Folding pause into either
    * one is how the pause button ends up deleting itself mid-tap, or the sheet
    * lying about the state it reports.
@@ -41,10 +41,10 @@ export interface SlideNarration {
   /**
    * Progress through the slide's audible LIFE, 0..1 — the clip plus the
    * post-clip dwell, the same model deckDuration.ts prices a slide at. So in
-   * Suitcase Mode the ring completes exactly when the deck advances, rather
+   * Audiobook mode the ring completes exactly when the deck advances, rather
    * than sitting full through five silent seconds looking stuck. Read from
    * the live element on demand — a getter, not state, so a caller sampling
-   * it (SuitcaseTransport's ring) doesn't force this hook's owner to
+   * it (AudiobookTransport's ring) doesn't force this hook's owner to
    * re-render at the audio clock's rate. 0 with nothing loaded.
    */
   getSlideProgress: () => number;
@@ -61,7 +61,7 @@ export function useSlideNarration({
   enabledDefault?: boolean;
   /**
    * Called SLIDE_DWELL_SECONDS after the current clip finishes playing (not
-   * on pause/stop, only a real end). Suitcase Mode's whole mechanic:
+   * on pause/stop, only a real end). Audiobook mode's whole mechanic:
    * DeckPlayer passes goNext here so the deck advances the way a podcast
    * moves to its next track — after the same dwell the deck's own length
    * estimate (deckDuration.ts) already bakes in for a slide with no
@@ -75,7 +75,7 @@ export function useSlideNarration({
    * Hold playback without changing whether narration is ON. The mobile
    * settings sheet sets this while it's open: a voice reading over you while
    * you're trying to read a switch is rude, and the deck may auto-advance out
-   * from under the sheet in Suitcase Mode.
+   * from under the sheet in Audiobook mode.
    *
    * Deliberately NOT `toggle()`. That flips `enabled`, which would make the
    * sheet's own Narration switch turn itself off as the sheet opened — a
@@ -156,7 +156,7 @@ export function useSlideNarration({
   //
   // A dwell timer already running is left alone: it's counting down to an
   // advance the visitor asked for, and cancelling it here would silently
-  // strand a Suitcase Mode deck on the slide it had just finished. Pausing in
+  // strand an Audiobook mode deck on the slide it had just finished. Pausing in
   // that 5-second gap therefore lets the queued slide change complete and then
   // holds on the new slide — one flip, then stillness until Play.
   useEffect(() => {
@@ -203,9 +203,9 @@ export function useSlideNarration({
         if (onEndedRef.current) {
           onEndedRef.current();
         } else {
-          // The clip finished while nothing wanted to hear about it — Suitcase
-          // Mode was off, or the window had been widened past the mobile
-          // breakpoint, which un-arms it. Remember that this slide is SPENT so
+          // The clip finished while nothing wanted to hear about it — Audiobook
+          // mode was off, or the window had been widened into Podium, which
+          // un-arms it. Remember that this slide is SPENT so
           // that re-arming can act on it: without this the deck sits on a
           // finished slide showing a Pause button, playing nothing, advancing
           // never, because the "ended" event it needed is long gone.
@@ -219,7 +219,7 @@ export function useSlideNarration({
     // whenever `stop` is re-created, so without the guard a re-render during
     // an open settings sheet (or a transport pause) would start the clip
     // playing underneath it — the hold effect above has already run by then
-    // and won't run again. Suitcase Mode makes this reachable on its own: the
+    // and won't run again. Audiobook mode makes this reachable on its own: the
     // deck can auto-advance to a new slide while the sheet is open, which is
     // exactly a url change.
     if (!heldRef.current) {
