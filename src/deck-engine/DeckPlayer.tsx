@@ -23,8 +23,8 @@ export type { NarrationVoice };
 //     on. The viewer's bar (Exit | the transport | settings, fullscreen, the
 //     sound) at every width; NO notes surface exists. Absent, not hidden: a
 //     link someone shared with you has nothing to escalate to.
-//   "presenter" — the podium. The presenter's bar, everything inline, with the
-//     notes popout; never at the phone width, where the bar can't fold.
+//   "presenter" — the podium. The presenter's bar (no sound, no voice: those stay in
+//     the speaker-notes window), with the notes popout; never at the phone width, where the bar can't fold.
 export type DeckMode = "presenter" | "audience";
 
 /**

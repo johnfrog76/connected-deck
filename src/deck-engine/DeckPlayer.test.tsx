@@ -28,9 +28,8 @@ import {
 // player every surface mounts; what a window IS comes from `mode` and the
 // host's `offeredModes`, never from which props happen to be wired:
 //
-//   presenter — the podium, and the presenter's bar: everything inline (Exit,
-//     previous, the counter, next, the sound, the voice, the notes,
-//     fullscreen). Only where the host offers it, never at the phone width,
+//   presenter — the podium, and the presenter's bar: Exit, previous, the
+//     counter, next, the notes, fullscreen (never the sound or the voice). Only where the host offers it, never at the phone width,
 //     and it opens silent.
 //   audience — Sofa, or Audiobook mode, on the viewer's bar: Exit | the
 //     transport | settings, fullscreen, the sound, at every width. No notes
@@ -301,15 +300,20 @@ describe("DeckPlayer — two bars, each for its job", () => {
     expect(screen.queryByTitle("Open speaker notes")).toBeNull();
   });
 
-  it("presenter: the presenter's bar — everything inline, no gear", () => {
+  it("presenter: the presenter's bar — paging and notes, never sound or the voice, no gear", () => {
+    // Narration is fully wired and covered; the room's bar still carries
+    // neither the sound toggle nor the voice picker. Those stay in the
+    // speaker-notes window.
     mountPlayer("presenter");
 
     expect(barKind()).toBe("presenter");
     expect(screen.getByTitle("Open speaker notes")).toBeTruthy();
-    expect(screen.getByTitle("Play with narration")).toBeTruthy();
-    expect(screen.getByTitle(VOICE_PICKER_TITLE)).toBeTruthy();
     expect(screen.getByText("1 / 2")).toBeTruthy();
     expect(screen.queryByLabelText("Settings")).toBeNull();
+    expect(screen.queryByTitle("Play with narration")).toBeNull();
+    expect(screen.queryByTitle("Stop narration")).toBeNull();
+    expect(screen.queryByTitle(VOICE_PICKER_TITLE)).toBeNull();
+    expect(screen.queryByRole("combobox")).toBeNull();
   });
 
   it("presenter: opens silent, even with narrate-by-default on", () => {
@@ -885,7 +889,7 @@ describe("DeckPlayer — nothing baked, no API: every surface says so", () => {
     expect(sound.hasAttribute("disabled")).toBe(true);
   });
 
-  it("the presenter's bar: the sound and the voice dropdown are both dead", () => {
+  it("the presenter's bar: no sound and no voice dropdown, even with nothing baked", () => {
     render(
       <MemoryRouter>
         <ViewportProvider>
@@ -900,14 +904,8 @@ describe("DeckPlayer — nothing baked, no API: every surface says so", () => {
       </MemoryRouter>,
     );
 
-    // BOTH carry this title — no covered voice ⇒ the whole group is dead,
-    // picker included.
-    const dead = screen.getAllByTitle(NO_NARRATION_TITLE);
-    expect(dead.length).toBeGreaterThanOrEqual(2);
-    dead.forEach((el) => {
-      const control = el.tagName === "BUTTON" ? el : el.querySelector("button") ?? el;
-      expect(control.hasAttribute("disabled")).toBe(true);
-    });
+    expect(screen.queryByTitle(NO_NARRATION_TITLE)).toBeNull();
+    expect(screen.queryByRole("combobox")).toBeNull();
   });
 
   it("never auto-plays, even with narrate-by-default and Audiobook both on", () => {

@@ -9,6 +9,13 @@ nothing and something stopped being broken.
 
 ## [Unreleased]
 
+### Fixed
+
+- **Podium's bar no longer offers the sound toggle or the voice picker.**
+  Turning narration on from the room's window played it in both windows, out
+  of step. Sound and voice now live only in the speaker-notes window; the
+  room's bar keeps Exit, paging, the notes button and fullscreen.
+
 ## [0.2.0] - 2026-10-28
 
 ### Added

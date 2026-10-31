@@ -113,7 +113,7 @@ src/
     SlideRenderer.tsx     60/40 side by side, or stacked art-over-copy on a
                           phone (the art SCALES, it doesn't reflow)
     DeckChrome.tsx        picks a bar by mode — no styling of its own
-    DeckChromePresenter.tsx  Podium's bar: everything inline, understated
+    DeckChromePresenter.tsx  Podium's bar: Exit, paging, notes, fullscreen; understated
     DeckChromeViewer.tsx  the viewer's bar: three columns, the transport on
                           the centre, the play ring in Audiobook mode, the
                           gear's settings sheet
