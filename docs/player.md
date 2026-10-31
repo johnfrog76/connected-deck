@@ -25,7 +25,7 @@ thing you see because they're the thing worth understanding:
   and opens a second window with your notes, a timer, and a live preview of the
   next slide. The deck opens silent, because someone reading from their own
   notes doesn't usually want a synthesized voice competing with them; the
-  sound and the voice are on the bar for when they do.
+  sound and the voice are in the speaker-notes window for when they do.
 
 Your choice persists per browser. **The URL always wins over the setting**:
 `?present=1` and `?present=0` force a mode for one viewing, so a deck link you
@@ -65,9 +65,9 @@ The bar follows the mode, not the width. There are two, and never a third:
   groups of different widths leave. `viewerBarLayout.ts` holds that rule and
   the sizes that keep a phone's groups inside their halves.
 - **The presenter's bar** — Podium only. Exit, previous, the counter, next,
-  the sound, the voice as a dropdown, the notes and fullscreen, all inline,
-  because presenting is the one time every control is wanted at hand. It is
-  understated all the same: it's projected on a wall, so every pixel it takes
+  the notes and fullscreen. The sound and the voice are not on it: they live in
+  the speaker-notes window, so narration never plays from the room's window. It
+  is understated: it's projected on a wall, so every pixel it takes
   is one the room isn't spending on the slide.
 
 **The settings sheet** sits behind the viewer's bar's gear, at every width. It
