@@ -54,7 +54,7 @@ export function DeckChromePresenter({
         ✕ Exit
       </Button>
 
-      {/* Center: prev / counter / next, */}
+      {/* Center: prev / counter / next */}
       <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
         <Button size="small" appearance="subtle" disabled={slideIndex === 0} onClick={goPrev}>
           ←
