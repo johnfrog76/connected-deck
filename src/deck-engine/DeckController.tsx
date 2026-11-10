@@ -98,6 +98,13 @@ export function useDeckController(
     const handleKey = (e: KeyboardEvent) => {
       const tag = (e.target as HTMLElement)?.tagName;
       if (tag === "INPUT" || tag === "TEXTAREA") return;
+      // While a dialog or drawer is open, its keys belong to it (issue 21):
+      // Escape in the settings sheet closes the sheet and nothing else, and an
+      // arrow or Space inside it does not page the deck behind it. Skipped when
+      // the event comes from inside one, or something already handled it.
+      // With nothing open, every key below means what it always has.
+      if (e.defaultPrevented) return;
+      if ((e.target as Element | null)?.closest?.('[role="dialog"], [role="alertdialog"]')) return;
       switch (e.key) {
         case "ArrowRight":
         case " ":

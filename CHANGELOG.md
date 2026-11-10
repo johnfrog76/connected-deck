@@ -11,6 +11,12 @@ nothing and something stopped being broken.
 
 ### Fixed
 
+- **Escape in the settings sheet closes the sheet and leaves the deck where it
+  is.** One Escape used to close the sheet and exit the deck too. While a
+  dialog or drawer is open, its keys are its own: Escape, the arrows, Space and
+  F do nothing to the deck behind it. With nothing open, every key works as
+  before.
+
 - **Podium's bar no longer offers the sound toggle or the voice picker.**
   Turning narration on from the room's window played it in both windows, out
   of step. Sound and voice now live only in the speaker-notes window; the
