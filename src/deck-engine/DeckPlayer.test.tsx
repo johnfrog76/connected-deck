@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { act, fireEvent, render, screen } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { webDarkTheme } from "@fluentui/react-components";
 import { DeckPlayer, type DeckMode } from "./DeckPlayer";
 import { darkTheme } from "../theme";
@@ -9,6 +9,7 @@ import { ViewportProvider } from "../viewport";
 import { PresenterModeProvider } from "../presenterMode";
 import { VoicePreferenceProvider } from "../voicePreference";
 import {
+  CLOSE_SETTINGS_LABEL,
   DEFAULT_VOICE_ID,
   NARRATION_VOICES,
   NO_NARRATION_TITLE,
@@ -1557,5 +1558,86 @@ describe("DeckPlayer — initialSlideIndex", () => {
 
     expect(onNav).toHaveBeenCalledWith(3, 8);
     expect(onNav).not.toHaveBeenCalledWith(4, 8);
+  });
+});
+
+
+// The settings sheet's keys are its own (issue 21): Escape in it closes the
+// sheet and leaves the deck where it is, and an arrow or Space in it pages
+// nothing. The keys are pressed on the sheet's close button, where a
+// visitor's focus is once it opens (the switch is an <input>, which the
+// handler always skipped, so a test pressing there would pass on the bug).
+describe("DeckPlayer — the settings sheet's keys are its own", () => {
+  function Where() {
+    return <span data-testid="where">{useLocation().pathname}</span>;
+  }
+  function mountAtDeck() {
+    render(
+      <MemoryRouter initialEntries={["/launch", "/deck"]} initialIndex={1}>
+        <ViewportProvider>
+          <PresenterModeProvider>
+            <VoicePreferenceProvider>
+              <Where />
+              <Routes>
+                <Route
+                  path="/deck"
+                  element={
+                    <DeckPlayer
+                      deckId="fake-deck"
+                      slides={slides}
+                      mode="audience"
+                      voices={NARRATION_VOICES}
+                      hasApi={false}
+                      resolveNarrationUrl={allBaked}
+                      narrateByDefault
+                    />
+                  }
+                />
+                <Route path="/launch" element={<span>launch</span>} />
+              </Routes>
+            </VoicePreferenceProvider>
+          </PresenterModeProvider>
+        </ViewportProvider>
+      </MemoryRouter>,
+    );
+  }
+  const where = () => screen.getByTestId("where").textContent;
+  const inSheet = () => screen.getByLabelText(CLOSE_SETTINGS_LABEL);
+
+  it("Escape in the open sheet closes the sheet and stays; a second Escape exits", () => {
+    mountAtDeck();
+    fireEvent.click(screen.getByLabelText("Settings"));
+    act(() => {
+      fireEvent.keyDown(inSheet(), { key: "Escape" });
+    });
+    expect(where()).toBe("/deck");
+    expect(screen.queryByLabelText(CLOSE_SETTINGS_LABEL)).toBeNull();
+    act(() => {
+      fireEvent.keyDown(window, { key: "Escape" });
+    });
+    expect(where()).toBe("/launch");
+  });
+
+  it("an arrow or Space pressed in the sheet does not page the deck behind it", () => {
+    mountAtDeck();
+    fireEvent.click(screen.getByLabelText("Settings"));
+    for (const key of ["ArrowRight", " "]) {
+      act(() => {
+        fireEvent.keyDown(inSheet(), { key });
+      });
+    }
+    expect(screen.getByText("1 / 2")).toBeTruthy();
+  });
+
+  it("with nothing open, the keys page and exit as before", () => {
+    mountAtDeck();
+    act(() => {
+      fireEvent.keyDown(window, { key: "ArrowRight" });
+    });
+    expect(screen.getByText("2 / 2")).toBeTruthy();
+    act(() => {
+      fireEvent.keyDown(window, { key: "Escape" });
+    });
+    expect(where()).toBe("/launch");
   });
 });
