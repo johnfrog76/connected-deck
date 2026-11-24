@@ -93,6 +93,21 @@ Feed the component whatever data source it normally uses; the engine only ever
 sees a `ReactNode`. If you want a slide to stay stable across a live demo, pass
 it a frozen snapshot instead of a live query.
 
+Its props, all optional:
+
+| Prop          | Default | What it does                                                                                |
+| ------------- | ------- | ------------------------------------------------------------------------------------------- |
+| `initialZoom` | `1`     | how big the component first appears; the control's percentage resets to it                  |
+| `minZoom`     | `0.25`  | the smallest zoom the control allows                                                        |
+| `zoomStep`    | `0.25`  | one press of − or +; a card that opens at 140% and should land on 100% in two presses sets 0.2 |
+| `noZoom`      | off     | hides the zoom control                                                                      |
+| `inverse`     | off     | a dark pill behind the zoom control, for a component that fills the frame with a light surface |
+| `transparent` | off     | no stage colour and no grid, for a component that sits on art the slide already draws       |
+
+On a phone the slide's art is drawn scaled into the band, and the zoom control
+is drawn back at its own size inside it: touch-sized buttons, always on the dark
+pill. Nothing changes on desktop.
+
 ## Bringing your own decks
 
 1. Add a file under `src/decks/`, export a `Deck` from it.
@@ -121,6 +136,8 @@ src/
     viewerBarLayout.ts    the three-column rule and the sizes that hold it
     AudiobookTransport.tsx  the play ring: play/pause wearing the slide's progress
     ComponentFrame.tsx    wraps a real component: design grid + live zoom
+    artScale.tsx          the scale a phone draws the art at, and AtNativeSize for a
+                          control inside it that keeps its own size
     PresenterNotes.tsx    the second-screen window: notes, timer, next-slide
                           preview, narration controls
     PresenterNoteKit.tsx  Say / Context / Beat
