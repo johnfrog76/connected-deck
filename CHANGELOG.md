@@ -9,6 +9,20 @@ nothing and something stopped being broken.
 
 ## [Unreleased]
 
+### Added
+
+- **`ComponentFrame` takes `transparent`, `inverse` and `zoomStep`.**
+  `transparent` drops the stage colour and the grid, for a component framed over
+  art the slide already draws. `inverse` puts a dark pill behind the zoom control,
+  for a light component. `zoomStep` sets one press of − or +. All three are
+  optional, and a deck that passes none of them looks as it did.
+- **On a phone, the zoom control keeps its size.** The slide's art is drawn
+  scaled into the band, about half size at 390 px, and the control used to
+  shrink with it. It is now drawn back at native size, with touch-sized buttons,
+  on the dark pill. `ZoomControl` gains an optional `buttonSize`, and
+  `deck-engine/artScale.tsx` gives a control inside the art its scale
+  (`AtNativeSize`).
+
 ### Fixed
 
 - **Escape in the settings sheet closes the sheet and leaves the deck where it

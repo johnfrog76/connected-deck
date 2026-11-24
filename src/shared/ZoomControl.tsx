@@ -42,21 +42,57 @@ interface ZoomControlProps {
   setZoom: (fn: (z: number) => number) => void;
   /** Reset target when the percentage is clicked. Defaults to 1. */
   resetTo?: number;
+  /**
+   * The buttons' side in px, 26 unless given: a host on a phone passes its
+   * touch target, and the percentage grows to read beside it.
+   */
+  buttonSize?: number;
   min?: number;
   max?: number;
   step?: number;
 }
 
-export function ZoomControl({ zoom, setZoom, resetTo = 1, min = 0.5, max = 3, step = 0.25 }: ZoomControlProps) {
+export function ZoomControl({
+  zoom,
+  setZoom,
+  resetTo = 1,
+  buttonSize,
+  min = 0.5,
+  max = 3,
+  step = 0.25,
+}: ZoomControlProps) {
   const styles = useStyles();
   const clamp = (z: number) => Math.min(max, Math.max(min, z));
+  const sized = buttonSize
+    ? { width: `${buttonSize}px`, height: `${buttonSize}px`, fontSize: "1.25rem" }
+    : undefined;
+  const labelSized = buttonSize ? { fontSize: "0.9rem", minWidth: "48px" } : undefined;
   return (
     <div className={styles.root}>
-      <button className={styles.button} title="Zoom out" onClick={() => setZoom((z) => clamp(z - step))}>−</button>
-      <button className={styles.label} title="Reset zoom" onClick={() => setZoom(() => resetTo)}>
+      <button
+        className={styles.button}
+        style={sized}
+        title="Zoom out"
+        onClick={() => setZoom((z) => clamp(z - step))}
+      >
+        −
+      </button>
+      <button
+        className={styles.label}
+        style={labelSized}
+        title="Reset zoom"
+        onClick={() => setZoom(() => resetTo)}
+      >
         {Math.round(zoom * 100)}%
       </button>
-      <button className={styles.button} title="Zoom in" onClick={() => setZoom((z) => clamp(z + step))}>+</button>
+      <button
+        className={styles.button}
+        style={sized}
+        title="Zoom in"
+        onClick={() => setZoom((z) => clamp(z + step))}
+      >
+        +
+      </button>
     </div>
   );
 }

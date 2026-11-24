@@ -1,6 +1,7 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import type { Slide } from "../decks/types";
+import { ArtScaleContext } from "./artScale";
 
 export const DECK_BG = "#07080f";
 const CONTENT_BG = "#0d0e18";
@@ -64,7 +65,9 @@ function ScaledContent({ children }: { children: ReactNode }) {
           flexDirection: "column",
         }}
       >
-        {children}
+        {/* The art's scale, for a control inside it that keeps its own size
+            (ComponentFrame's zoom control, through AtNativeSize). */}
+        <ArtScaleContext.Provider value={scale}>{children}</ArtScaleContext.Provider>
       </div>
     </div>
   );
