@@ -108,6 +108,24 @@ On a phone the slide's art is drawn scaled into the band, and the zoom control
 is drawn back at its own size inside it: touch-sized buttons, always on the dark
 pill. Nothing changes on desktop.
 
+## The closing slide's repository button
+
+`CopyLinkButton` is the GitHub mark a deck's last slide carries. It is a link
+that opens the repository in a new tab. Its props, all optional:
+
+| Prop      | Default                   | What it does                                                                   |
+| --------- | ------------------------- | ------------------------------------------------------------------------------ |
+| `url`     | this repository           | the repository it opens                                                        |
+| `corner`  | `"bottom-right"`          | which corner of the stage it sits in; `null` renders it inline for the slide to place |
+| `title`   | `"Open the repo on GitHub"` | its tooltip and accessible name                                              |
+| `inverse` | read off the stage        | `true` for the white mark on a dark ground, `false` for the dark mark on a light one |
+
+Leave `inverse` out and the button reads the stage behind it: the first
+ancestor that paints an opaque background colour, or a gradient, decides dark
+or light, and with nothing painted it reads as dark. Pass it only when the
+reading is wrong for your slide, say over a photograph the button can't see. On
+a phone the disc grows to 84px, since the stage is drawn at about half size there.
+
 ## Bringing your own decks
 
 1. Add a file under `src/decks/`, export a `Deck` from it.
@@ -136,6 +154,7 @@ src/
     viewerBarLayout.ts    the three-column rule and the sizes that hold it
     AudiobookTransport.tsx  the play ring: play/pause wearing the slide's progress
     ComponentFrame.tsx    wraps a real component: design grid + live zoom
+    CopyLinkButton.tsx    the closing slide's repository link; reads its contrast off the stage
     artScale.tsx          the scale a phone draws the art at, and AtNativeSize for a
                           control inside it that keeps its own size
     PresenterNotes.tsx    the second-screen window: notes, timer, next-slide

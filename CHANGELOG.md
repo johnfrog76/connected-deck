@@ -9,6 +9,17 @@ nothing and something stopped being broken.
 
 ## [Unreleased]
 
+### Changed
+
+- **`CopyLinkButton` opens the repository instead of copying its link.** It is
+  now a link to `url` in a new tab, with no clipboard and no "Copied!". `url` is
+  optional and defaults to this repository. The default title is "Open the repo
+  on GitHub". On a phone the disc is 84px, a touch-sized target.
+- **`CopyLinkButton` reads its contrast off the stage.** With no `inverse`, the
+  first ancestor that paints an opaque colour or a gradient decides between the
+  white mark and the dark one, and nothing painted reads as dark. A deck that
+  passes `inverse` keeps what it chose.
+
 ### Added
 
 - **`ComponentFrame` takes `transparent`, `inverse` and `zoomStep`.**
